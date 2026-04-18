@@ -16,7 +16,6 @@ PharmaPulse is a demo pharmacy web application used as an environment for resear
 ## Installation
 
 ### Prerequisites
-
 - Python 3.9+
 - MySQL server
 
@@ -55,7 +54,7 @@ mysql -u root -p pharmapulse < pharmapulse_base.sql
 
 6. Run the application:
 ```bash
-python app.py
+python3 app.py
 ```
 
 The app will be available at `http://127.0.0.1:5000`
@@ -64,6 +63,11 @@ The app will be available at `http://127.0.0.1:5000`
 
 ```
 pharmapulse_app/
+├── ml_training             # Folder for ml training
+├── dataset/
+│   ├── Train.csv
+│   ├── Val.csv
+│   └── Test.csv
 ├── app.py                  # Main Flask application
 ├── pharmapulse_base.sql    # Database schema and seed data
 ├── requirements.txt        # Python dependencies
@@ -74,4 +78,5 @@ pharmapulse_app/
 
 ## Author
 
-Nina Ivankovic
+Nicole Ivanković, 
+University of Rijeka, Faculty of Engineering, Croatia
