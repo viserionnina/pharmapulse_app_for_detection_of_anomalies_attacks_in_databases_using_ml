@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>PharmaPulse</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="{{ url_for('static', filename='hero.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer">
+  <script src="{{ url_for('static', filename='brands.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='home_tabs.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='hero.js') }}" defer></script>
+</head>
+
+<body style="margin-left: 0px; margin-right: 0px; margin-top: 0px;">
+  <header class="site-header">
+    <div class="page-container" style="margin-right: 30px; margin-left: 30px;">
+    <div class="header-row">
+
+      <!-- LEFT (desktop menu) -->
+      <nav class="main-nav">
+        <a href="{{ url_for('index') }}">HOME</a>
+        <a href="{{ url_for('products') }}">PRODUCTS</a>
+        {% if current_user.is_authenticated %}
+        <a class="cart-pill" href="{{ url_for('cart') }}">MY CART
+          {% if cart_count and cart_count > 0 %}
+            <span class="cart-badge">
+              {{ cart_count }}
+            </span>
+          {% endif %}
+        </a>
+          <a href="{{ url_for('orders') }}">ORDERS</a>
+        {% endif %}
+      </nav>
+
+      <!-- CENTER (logo + naziv) -->
+      <a class="brand" href="{{ url_for('index') }}">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="PharmaPulse_logo">
+        <span class="brand-name">PharmaPulse</span>
+      </a>
+
+      <!-- RIGHT (actions) -->
+      <div class="header-actions">
+        {% if current_user.is_authenticated %}
+        {% if current_user.is_admin %}
+            <a href="{{ url_for('admin_index') }}">ADMIN</a>
+          {% endif %}
+          <a class="link-underline" href="{{ url_for('profile') }}">MY PROFILE</a>
+          <a class="link-underline" href="{{ url_for('logout') }}">Goodbye, {{ current_user.username }}</a>
+        {% else %}
+          <a class="link-underline" href="{{ url_for('register') }}">REGISTER</a>
+          <a class="link-underline" href="{{ url_for('login') }}">LOGIN</a>
+        {% endif %}
+      </div>
+    </div>
+    </div>
+  </header>
+
+      {% with msgs = get_flashed_messages() %}
+      {% if msgs %}
+        <main class="page-container">
+          {% for m in msgs %}<div class="flash">{{ m }}</div>{% endfor %}
+        </main>
+      {% endif %}
+    {% endwith %}
+
+    <main class="page-container">
+      {% block content %}{% endblock %}
+    </main>
+
+
+  <footer class="site-footer">
+    <!-- TOP: newsletter + follow -->
+    <section class="footer-top">
+      <div class="footer-container footer-top-grid">
+  
+        <div class="footer-box footer-box-border">
+          <p class="footer-kicker">NAJNOVIJE AKCIJE I NOVOSTI</p>
+          <h3 class="footer-title">Newsletter prijava</h3>
+          <p class="footer-text">
+            Dovoljna je samo <em>sekunda</em> da prvi otkrijete sve novosti i pogodnosti kroz naš newsletter
+          </p>
+  
+          <form class="footer-form" method="post" action="{{ url_for('newsletter_subscribe') }}" style="margin-left: 36px;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="email" name="email" placeholder="Vaša email adresa" required>
+            <button type="submit">Prijava</button>
+          </form>
+
+          <p class="footer-note">* Demo forma.</p>
+        </div>
+  
+        <div class="footer-box">
+          <p class="footer-kicker">PRATITE NAS</p>
+          <h3 class="footer-title">Follow &amp; Share</h3>
+          <p class="footer-text">
+            Samo jedan <em>klik</em> je dovoljan da prvi saznate sve o našim novim ponudama i događajima
+          </p>
+  
+          <div class="social-row" aria-label="Social links">
+            <a class="social-btn" target="_blank" rel="noopener noreferrer nofollow"
+               href="https://www.facebook.com/sharer/sharer.php?u={{ request.url|urlencode }}"
+               aria-label="Facebook">
+              <i class="fa-brands fa-facebook-f"></i>
+            </a>
+          
+            <a class="social-btn" target="_blank" rel="noopener noreferrer nofollow"
+               href="https://x.com/share?url={{ request.url|urlencode }}"
+               aria-label="X">
+              <i class="fa-brands fa-x-twitter"></i>
+            </a>
+          
+            <a class="social-btn" target="_blank" rel="noopener noreferrer nofollow"
+               href="https://www.linkedin.com/shareArticle?mini=true&url={{ request.url|urlencode }}"
+               aria-label="LinkedIn">
+              <i class="fa-brands fa-linkedin-in"></i>
+            </a>
+          
+            <a class="social-btn" target="_blank" rel="noopener noreferrer nofollow"
+               href="https://api.whatsapp.com/send?text={{ request.url|urlencode }}"
+               aria-label="WhatsApp">
+              <i class="fa-brands fa-whatsapp"></i>
+            </a>
+          
+            <a class="social-btn" target="_blank" rel="noopener noreferrer nofollow"
+               href="https://telegram.me/share/url?url={{ request.url|urlencode }}"
+               aria-label="Telegram">
+              <i class="fa-brands fa-telegram"></i>
+            </a>
+          
+            <a class="social-btn" target="_blank" rel="noopener noreferrer nofollow"
+               href="viber://forward?text={{ request.url|urlencode }}"
+               aria-label="Viber">
+              <i class="fa-brands fa-viber"></i>
+            </a>
+          </div>
+        </div>
+  
+      </div>
+    </section>
+  
+    <!-- MIDDLE: info columns -->
+    <section class="footer-mid">
+      <div class="footer-container footer-mid-grid">
+  
+        <div class="footer-col">
+          <p class="brand" href="{{ url_for('index') }}" style="margin-top: 0px;">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="PharmaPulse_logo">
+            <span class="brand-name">PharmaPulse</span>
+          </p>
+          <p class="footer-muted">
+            Zdravstvena ustanova za ljekarničku djelatnost PharmaPulse
+          </p>
+          <ul class="footer-list">
+            <li> <i class="fa fa-map" aria-hidden="true" ></i> Rijeka, Croatia</li>
+            <li> <i class="fa fa-mobile" aria-hidden="true"></i> Telefon: +385 99 123 4567</li>
+            <li> <i class="fa fa-envelope" aria-hidden="true"></i> Email: info@pharmapulse.hr</li>
+          </ul>
+        </div>
+  
+        <div class="footer-col">
+          <h4 class="footer-heading">NAŠE LJEKARNE</h4>
+          <ul class="footer-links">
+            <li><a href="#">Ljekarna PharmaPulse Rijeka, Vukovarska 58, Telefon: 051/123-456</a></li>
+            <li><a href="#">Ljekarna PharmaPulse Arena, Ul. Vice Vukova 8, Telefon: 051/123-456</a></li>
+            <li><a href="#">Ljekarna PharmaPulse TowerCenter Rijeka, Pećine 81A, Janka Polića Kamova, (1.kat), Telefon: 051/123-456</a></li>
+          </ul>
+        </div>
+  
+        <div class="footer-col">
+          <h4 class="footer-heading">INFORMACIJE</h4>
+          <ul class="footer-links">
+            <li><a href="#">O nama</a></li>
+            <li><a href="#">Kontakt</a></li>
+            <li><a href="{{ url_for('products') }}">Online ljekarna webshop</a></li>
+          </ul>
+        </div>
+  
+        <div class="footer-col">
+          <h4 class="footer-heading">UVJETI KUPNJE</h4>
+          <ul class="footer-links">
+            <li><a href="#">Uvjeti poslovanja</a></li>
+            <li><a href="#">Dostava paketa GLS</a></li>
+            <li><a href="#">Zaštita osobnih podataka</a></li>
+            <li><a href="#">Sigurnost online plaćanja</a></li>
+            <li><a href="#">Reklamacije i raskid ugovora</a></li>
+            <li><a href="#">Često postavljena pitanja FAQ</a></li>
+          </ul>
+        </div>
+  
+      </div>
+    </section>
+  
+    <!-- BOTTOM: copyright + payments -->
+    <section class="footer-bottom">
+      <div class="footer-container footer-bottom-row">
+        <div class="footer-copy">
+          PharmaPulse made by <strong>Nicole Ivankovic</strong> © 2026.
+        </div>
+        <div class="footer-payments">
+          <img src="{{ url_for('static', filename='payments.svg') }}" alt="payments">
+        </div>
+      </div>
+    </section>
+  </footer>
+
+</body>
+</html>

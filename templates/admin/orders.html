@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-container" style="max-width:1100px; margin:0 auto; padding:16px;">
+
+  <div class="pp-profile__head" style="margin: 10px 0 18px;">
+    <h2 style="margin:0;">Narudžbe (Admin)</h2>
+    <p style="margin:.25rem 0 0; color:#666;">Pregled svih narudžbi i promjena statusa.</p>
+  </div>
+
+  {% if orders and orders|length > 0 %}
+    {% for o in orders %}
+      <div class="card" style="margin-bottom:12px;">
+        <div class="row" style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+          <div>
+            <div style="font-weight:800;">
+              Order #{{ o.id }}
+              <span class="chip chip--{{ o.status }}">{{ o.status }}</span>
+            </div>
+            <div style="color:#666; font-size:14px;">
+              {{ o.created_at.strftime("%Y-%m-%d %H:%M") if o.created_at else "" }}
+              · User ID: {{ o.user_id }}
+              {% set net = (o.total_cents or 0) %}
+              
+              {% set vat = (net * 0.25) %}
+              {% set gross = net + vat %}
+              · Osnovica: €{{ '%.2f' % (net/100) }}
+              · PDV (25%): €{{ '%.2f' % (vat/100) }}
+              · Ukupno: €{{ '%.2f' % (gross/100) }}
+            </div>
+          </div>
+
+          <div style="min-width:260px;">
+                <form method="post"
+                    action="{{ url_for('admin_orders_status', order_id=o.id) }}"
+                    style="display:flex; gap:8px; align-items:center; justify-content:flex-end; flex-wrap:nowrap;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <select name="status"
+                        class="pp-input"
+                        style="min-width:160px; width:auto; margin:0; padding:.6rem .75rem;">
+                    {% set s = (o.status or "pending") %}
+                    <option value="pending"   {% if s=="pending" %}selected{% endif %}>pending</option>
+                    <option value="approved"  {% if s=="approved" %}selected{% endif %}>approved</option>
+                    <option value="shipped"   {% if s=="shipped" %}selected{% endif %}>shipped</option>
+                    <option value="cancelled" {% if s=="cancelled" %}selected{% endif %}>cancelled</option>
+                </select>
+
+                <button class="pp-btn" type="submit" style="margin:0; white-space:nowrap;">
+                    Spremi status
+                </button>
+                </form>
+          </div>
+        </div>
+
+        <div style="margin-top:20px; padding-top:10px; border-top:1px solid rgba(0,0,0,.08);">
+          <div style="font-weight:700; margin-bottom:6px;">Shipping adresa</div>
+          <div style="color:#444; line-height:1.35;">
+            {% if o.shipping_full_name %}{{ o.shipping_full_name }}<br>{% endif %}
+            {% if o.shipping_phone %}{{ o.shipping_phone }}<br>{% endif %}
+            {% if o.shipping_line1 %}{{ o.shipping_line1 }}{% if o.shipping_line2 %}, {{ o.shipping_line2 }}{% endif %}<br>{% endif %}
+            {% if o.shipping_city or o.shipping_postal_code or o.shipping_country %}
+              {{ o.shipping_city or "" }} {{ o.shipping_postal_code or "" }}{% if o.shipping_city or o.shipping_postal_code %}, {% endif %}{{ o.shipping_country or "" }}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p style="color:#666;">Nema narudžbi.</p>
+  {% endif %}
+
+  <div style="margin-top:12px;">
+    <a class="pp-btn pp-btn--ghost" href="{{ url_for('admin_index') }}">← Natrag na Admin</a>
+  </div>
+
+</div>
+{% endblock %}

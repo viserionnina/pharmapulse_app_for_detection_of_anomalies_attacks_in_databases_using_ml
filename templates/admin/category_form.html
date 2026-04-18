@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-container" style="max-width:1100px; margin:0 auto; padding:16px;">
+
+  <div class="pp-profile__head" style="margin:10px 0 18px;">
+    <h2 style="margin:0;">
+      {% if mode == "new" %}Nova kategorija{% else %}Uredi kategoriju #{{ cat.id }}{% endif %}
+    </h2>
+    <p style="margin:.25rem 0 0; color:#666;">Slug mora biti jedinstven. Parent je opcionalan.</p>
+  </div>
+
+  <div class="card pp-card">
+    <form method="post" class="pp-form" style="display:flex; flex-direction:column; gap:12px;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="pp-row">
+        <label>Naziv</label>
+        <input class="pp-input" type="text" name="name"
+               value="{{ cat.name if cat else '' }}"
+               required maxlength="120">
+      </div>
+
+      <div class="pp-row">
+        <label>Slug (opcionalno)</label>
+        <input class="pp-input" type="text" name="slug"
+               value="{{ cat.slug if cat else '' }}"
+               maxlength="160"
+               placeholder="npr. vitamini-dodaci">
+      </div>
+
+      <div class="pp-row">
+        <label>Parent (opcionalno)</label>
+        <select class="pp-input" name="parent_id">
+          <option value="">— bez parenta —</option>
+          {% for c in categories %}
+            {% if not cat or c.id != cat.id %}
+              <option value="{{ c.id }}"
+                {% if cat and cat.parent_id and (c.id == cat.parent_id) %}selected{% endif %}>
+                #{{ c.id }} — {{ c.name }}
+              </option>
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="pp-actions" style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+        <button class="pp-btn" style="font-size: 14px;" type="submit">Spremi</button>
+        <a class="pp-btn pp-btn--ghost" style="font-size: 14px;" href="{{ url_for('admin_categories') }}">Natrag</a>
+      </div>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

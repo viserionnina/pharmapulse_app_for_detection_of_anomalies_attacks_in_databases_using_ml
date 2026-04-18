@@ -1,0 +1,150 @@
+/* Full-bleed (da ide od ruba do ruba, iako je body padded) */
+.hero-wrap{
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+  }
+  
+  /* Carousel */
+  .hero{
+    position: relative;
+    height: 650px;
+    overflow: hidden;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .hero-track{
+    height: 100%;
+    display: flex;
+    transition: transform 700ms ease;
+    will-change: transform;
+  }
+  
+  .hero-slide{
+    min-width: 100%;
+    height: 100%;
+    position: relative;
+    background-image: var(--bg);
+    background-size: cover;
+    background-position: center;
+  }
+  
+  .hero-slide::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background: linear-gradient(90deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,.25) 45%, rgba(0,0,0,0) 80%);
+  }
+  
+  .hero-content{
+    position: relative;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 6vw;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .hero-copy{
+    max-width: 560px;
+    color: #fff;
+  }
+  
+  .hero-copy h2{
+    margin: 0 0 .6rem 0;
+    font-size: clamp(1.6rem, 2.8vw, 3rem);
+    font-weight: 700;
+    line-height: 1.05;
+  }
+  
+  .hero-copy p{
+    margin: 0 0 1.2rem 0;
+    font-size: 1.05rem;
+    opacity: .95;
+  }
+  
+  .hero-btn{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: .85rem 1.2rem;
+    background: rgb(0, 0, 0);
+    color: #fff;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+  }
+  .hero-btn:hover{ opacity: .9; }
+  
+  /* Arrows */
+  .hero-arrow{
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    border: 0px solid rgba(255,255,255,.55);
+    background: rgba(0,0,0,.25);
+    color: #fff;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+  }
+  .hero-arrow:hover{ background: rgba(0,0,0,.39); }
+  
+  .hero-arrow.prev{ left: 18px; }
+  .hero-arrow.next{ right: 18px; }
+  
+  /* Pagination 01/02 */
+  .hero-pager{
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 22px;
+    display: flex;
+    gap: .55rem;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .hero-dot{
+    width: 40px;
+    height: 34px;
+    border-radius: 1000px;
+    border: 0px solid rgba(255,255,255,.55);
+    background: rgba(0,0,0,.22);
+    color: #fff;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .hero-dot[aria-current="true"]{
+    background: rgba(0,0,0,.45);
+  }
+
+  /* === tekst animacija (ulazi s lijeva) === */
+  .hero-copy{
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+  
+  .hero-slide.is-active .hero-copy{
+    animation: heroIn 1900ms ease forwards;
+  }
+  
+  @keyframes heroIn{
+    from { opacity: 0; transform: translateX(-28px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  
+  
+  /* Responsive */
+  @media (max-width: 860px){
+    .hero{ height: 420px; }
+    .hero-arrow{ display:none; }
+    .hero-content{ padding: 0 1.25rem; }
+    .hero-copy{ max-width: 90%; }
+  }
+
+  
+  

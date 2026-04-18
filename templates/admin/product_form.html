@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-container" style="max-width:1100px;">
+  <div class="pp-profile__head" style="margin:1rem 0;">
+    <h2 style="margin:.2rem 0;">
+      {% if mode == "new" %}Novi proizvod{% else %}Uredi proizvod #{{ product_id }}{% endif %}
+    </h2>
+    <p style="margin:0; color:#666;">Slika: upload u static/uploads ili zalijepi URL.</p>
+  </div>
+
+  <div class="card pp-card">
+    <form id="product-form" method="post" enctype="multipart/form-data" class="pp-form">
+      {{ form.hidden_tag() }}
+
+      <div class="pp-form__rows">
+        <div class="pp-row">
+          <label>Naziv</label>
+          {{ form.name(class="pp-input") }}
+        </div>
+
+        <div class="pp-row">
+          <label>Opis</label>
+          {{ form.description(class="pp-input") }}
+        </div>
+
+        <div class="pp-row">
+          <label>Cijena (centi)</label>
+          {{ form.price_cents(class="pp-input") }}
+        </div>
+
+        <div class="pp-row">
+          <label>Akcija (0/1)</label>
+          {{ form.is_on_sale(class="pp-input") }}
+        </div>
+
+        <div class="pp-row">
+          <label>Akcijska cijena (centi)</label>
+          {{ form.sale_price_cents(class="pp-input") }}
+        </div>
+
+        <div class="pp-row">
+          <label>Slika URL / static path</label>
+          {{ form.image_url(class="pp-input", placeholder="npr. https://... ili products/slika.webp") }}
+        </div>
+
+        <div class="pp-row">
+            <label>Upload slike</label>
+            {{ form.image_file(class="pp-input pp-file") }}
+        </div>
+
+        <div class="pp-row">
+          <label>Brand ID</label>
+          {{ form.brand_id(class="pp-input") }}
+        </div>
+
+        <div class="pp-row" style="align-items:start;">
+            <label>Kategorije</label>
+          
+            <div style="display:grid; gap:8px;">
+              {% if all_categories and all_categories|length > 0 %}
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                  {% for c in all_categories %}
+                    <label style="display:inline-flex; align-items:center; gap:8px;
+                                  padding:.25rem .55rem; border:1px solid rgba(0,0,0,.10);
+                                  border-radius:999px; background:#fff; font-size: 14px;">
+                      <input type="checkbox" name="category_ids" value="{{ c.id }}"
+                             {% if selected_category_ids and (c.id in selected_category_ids) %}checked{% endif %}>
+                      <span>#{{ c.id }} — {{ c.name }}</span>
+                    </label>
+                  {% endfor %}
+                </div>
+                <div style="color:#666; font-size:13px;">
+                  Označi više kategorija ako treba.
+                </div>
+              {% else %}
+                <div style="color:#666;">Nema kategorija. Dodaj ih u Admin → Categories.</div>
+              {% endif %}
+            </div>
+          </div>          
+          
+
+        <div class="pp-row">
+          <label>Stock</label>
+          {{ form.stock_qty(class="pp-input") }}
+        </div>
+
+        <div class="pp-row">
+          <label>Aktivan (0/1)</label>
+          {{ form.is_active(class="pp-input") }}
+        </div>
+
+        <div class="pp-row">
+          <label>Preporuka (0/1)</label>
+          {{ form.is_recommended(class="pp-input") }}
+        </div>
+
+        <div class="pp-row">
+          <label>Recept (0/1)</label>
+          {{ form.prescription_required(class="pp-input") }}
+        </div>
+      </div>
+    </form>
+
+    <div class="pp-actions" style="margin-top:1rem; display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="pp-btn" style="font-size: 14px;" type="submit" form="product-form">Spremi</button>
+      <a class="pp-btn pp-btn--ghost" style="font-size: 14px;" href="{{ url_for('admin_products') }}">Natrag</a>
+
+      {% if mode == "edit" %}
+        <form method="post"
+              action="{{ url_for('admin_product_delete', product_id=product_id) }}"
+              onsubmit="return confirm('Sigurno želiš obrisati ovaj proizvod?');"
+              style="display:inline-block;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="pp-btn pp-btn--danger" type="submit">Obriši</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

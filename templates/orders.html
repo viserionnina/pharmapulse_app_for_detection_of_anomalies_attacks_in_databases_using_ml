@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-container" style="padding-right:16px; padding-left:16px;">
+  <h2>My Orders</h2>
+
+  {% if orders %}
+    {% for o in orders %}
+      {% set st = (o.status or "pending")|lower %}
+      {% set VAT_NUM = 125 %}
+      {% set VAT_DEN = 100 %}
+
+      <div class="card" style="margin-bottom:1rem;">
+        <div style="display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+          <div>
+            <strong>Order #{{ o.id }}</strong> — {{ o.created_at.strftime("%Y-%m-%d %H:%M") }}
+            <span class="chip chip--{{ st }}">{{ st }}</span>
+          </div>
+        </div>
+
+        {% if o.shipping_line1 %}
+          <div style="margin-top:.5rem; color:#555;">
+            <strong>Dostava:</strong><br>
+            {{ o.shipping_full_name or "" }}{% if o.shipping_full_name %},{% endif %}
+            {{ o.shipping_phone or "" }}<br>
+            {{ o.shipping_line1 }}{% if o.shipping_line2 %}, {{ o.shipping_line2 }}{% endif %}<br>
+            {{ o.shipping_postal_code }} {{ o.shipping_city }}, {{ o.shipping_country }}
+          </div>
+        {% endif %}
+
+        <div style="overflow-x:auto; margin-top:.75rem;">
+          <table style="width:100%; border-collapse:collapse;">
+            <thead>
+              <tr style="text-align:left; border-bottom:1px solid rgba(0,0,0,0.12);">
+                <th style="padding:.5rem .4rem;">Ime</th>
+                <th style="padding:.5rem .4rem; width:90px;">Qty</th>
+                <th style="padding:.5rem .4rem; width:140px;">Cijena</th>
+                <th style="padding:.5rem .4rem; width:160px;">Ukupno</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for it in o.items %}
+              {% set unit_base = it.price_cents_snapshot %}
+              {% set unit_vat = (unit_base * VAT_NUM + (VAT_DEN//2)) // VAT_DEN %}
+              {% set line_total_vat = unit_vat * it.quantity %}
+              
+              <tr style="border-bottom:1px solid rgba(0,0,0,0.06);">
+                <td style="padding:.55rem .4rem;">{{ it.product.name }}</td>
+                <td style="padding:.55rem .4rem;">{{ it.quantity }}</td>
+              
+                <!-- cijena po komadu S PDV -->
+                <td style="padding:.55rem .4rem;">
+                  €{{ '%.2f' % (unit_vat/100) }}
+                </td>
+              
+                <!-- ukupno po stavci S PDV -->
+                <td style="padding:.55rem .4rem; font-weight:700;">
+                  €{{ '%.2f' % (line_total_vat/100) }}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {% set total_base = o.total_cents() %}
+        {% set total_vat = (total_base * VAT_NUM + (VAT_DEN//2)) // VAT_DEN %}
+        {% set vat_amount = total_vat - total_base %}
+
+        <div style="display:flex; justify-content:flex-end; margin-top:.75rem; margin-right: 100px;">
+          <div style="text-align:right;">
+            <div style="color:#666; font-size:.95rem; margin-bottom: 3px;">
+              Osnovica: €{{ '%.2f' % (total_base/100) }}
+            </div>
+            <div style="color:#666; font-size:.95rem; margin-bottom: 5px;">
+              PDV (25%): €{{ '%.2f' % (vat_amount/100) }}
+            </div>
+            <div style="font-size:1.07rem;">
+              <strong>Total:</strong> €{{ '%.2f' % (total_vat/100) }}
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>No orders yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="card card-max">
+    <div class="page-container">
+      <p>Welcome to PharmaPulse Pharmaceuticals — a mock website for demo/testing. For demonstration use only.</p>
+      <p><strong>Security note:</strong> This build intentionally simulates an SQL injection login bypass for testing.</p>
+    </div>
+</div>
+
+  <!-- ===== CAROUSEL ISPOD NAVBARA ===== -->
+  <div class="hero-wrap">
+    <section class="hero" data-hero aria-label="Promotions">
+      <div class="hero-track">
+
+        <!-- Slide 1 -->
+        <article class="hero-slide" style="--bg: url('{{ url_for('static', filename='hero/slide_1.png') }}');">
+          <div class="hero-content">
+            <div class="hero-copy">
+              <h2>Sigurna i pouzdana online ljekarna</h2>
+              <p>Ponuda kvalitetnih farmaceutskih proizvoda provjerene učinkovitosti i kvalitete</p>
+              <a class="hero-btn" href="{{ url_for('products') }}">OTKRIJTE PONUDU</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Slide 2 -->
+        <article class="hero-slide" style="--bg: url('{{ url_for('static', filename='hero/slide_2.png') }}');">
+          <div class="hero-content">
+            <div class="hero-copy">
+              <h2>Dermokozmetika za zdravu i lijepu kožu</h2>
+              <p>Ponuda dermokozmetike dokazane učinkovitosti</p>
+              <a class="hero-btn" href="{{ url_for('products') }}">OTKRIJTE PONUDU</a>
+            </div>
+          </div>
+        </article>
+
+      </div>
+
+      <!-- Arrows -->
+      <button class="hero-arrow prev" type="button" data-hero-prev aria-label="Previous">‹</button>
+      <button class="hero-arrow next" type="button" data-hero-next aria-label="Next">›</button>
+
+      <!-- Pagination 01/02 -->
+      <div class="hero-pager" aria-label="Slides">
+        <button class="hero-dot" type="button" data-hero-dot="0" aria-current="true">1</button>
+        <button class="hero-dot" type="button" data-hero-dot="1" aria-current="false">2</button>
+      </div>
+    </section>
+  </div>
+  <!-- ===== /CAROUSEL ===== -->
+
+  <!-- ===== BRANDS / KATEGORIJE CAROUSEL (ispod hero) ===== -->
+<div class="brands-band">
+  <div class="page-container">
+    <div class="brands-viewport" data-brands>
+      <div class="brands-track">
+
+        <!-- CARD 1 -->
+        <a class="brand-card" href="{{ url_for('products') }}">
+          <img src="{{ url_for('static', filename='brands/brands_1.png') }}" alt="Brand 1">
+        </a>
+
+        <!-- CARD 2 -->
+        <a class="brand-card" href="{{ url_for('products') }}">
+          <img src="{{ url_for('static', filename='brands/brands_2.webp') }}" alt="Brand 2">
+        </a>
+
+        <!-- CARD 3 -->
+        <a class="brand-card" href="{{ url_for('products') }}">
+          <img src="{{ url_for('static', filename='brands/brands_3.jpg') }}" alt="Brand 3">
+        </a>
+
+        <a class="brand-card" href="{{ url_for('products') }}">
+          <img src="{{ url_for('static', filename='brands/brands_4.webp') }}" alt="Brand 4">
+        </a>
+
+        <a class="brand-card" href="{{ url_for('products') }}">
+          <img src="{{ url_for('static', filename='brands/brands_5.jpg') }}" alt="Brand 5">
+        </a>
+      </div>
+    </div>
+    <div class="brands-head">
+      <div class="brands-arrows">
+        <button class="brands-arrow" type="button" data-brands-prev aria-label="Previous">‹</button>
+        <button class="brands-arrow" type="button" data-brands-next aria-label="Next">›</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ===== /BRANDS ===== -->
+
+<section class="home-tabs" data-home-tabs>
+  <div class="page-container">
+    <div class="tabs-head">
+      <h2 class="tabs-title"><em>Ljekarna Webshop</em></h2>
+      <p class="footer-text" style="margin-bottom: 0px; margin-top: 5px;">Pažljivo smo odabrali proizvode koji zaslužuju vašu pažnju</p>
+      <div class="tabs-nav" role="tablist" aria-label="Products tabs">
+        <button class="tab-btn is-active" type="button" data-tab-btn="new">Novo</button>
+        <button class="tab-btn" type="button" data-tab-btn="recommended">Preporuka</button>
+        <button class="tab-btn" type="button" data-tab-btn="sale">AKCIJE</button>
+      </div>
+    </div>
+
+    <!-- NEW -->
+    <div class="tab-panel is-active" data-tab-panel="new">
+      <div class="home-products-grid" data-products-grid>
+        {% set products = new_products %}
+        {% set categories_by_product = new_categories_by_product %}
+        {% include "partials/_home_product_cards.html" %}
+      </div>
+
+      <button class="load-more"
+              type="button"
+              data-load-more="new"
+              data-page="1"
+              {% if not has_more_new %}style="display:none"{% endif %}>
+        Učitaj još proizvoda
+      </button>
+    </div>
+
+    <!-- RECOMMENDED -->
+    <div class="tab-panel" data-tab-panel="recommended">
+      <div class="home-products-grid" data-products-grid>
+        {% set products = rec_products %}
+        {% set categories_by_product = rec_categories_by_product %}
+        {% include "partials/_home_product_cards.html" %}
+      </div>
+
+      <button class="load-more"
+              type="button"
+              data-load-more="recommended"
+              data-page="1"
+              {% if not has_more_rec %}style="display:none"{% endif %}>
+        Učitaj još proizvoda
+      </button>
+    </div>
+
+    <!-- SALE -->
+    <div class="tab-panel" data-tab-panel="sale">
+      <div class="home-products-grid" data-products-grid>
+        {% set products = sale_products %}
+        {% set categories_by_product = sale_categories_by_product %}
+        {% include "partials/_home_product_cards.html" %}
+      </div>
+
+      <button class="load-more"
+              type="button"
+              data-load-more="sale"
+              data-page="1"
+              {% if not has_more_sale %}style="display:none"{% endif %}>
+        Učitaj još proizvoda
+      </button>
+    </div>
+  </div>
+</section>
+
+
+<section class="pp-brands" aria-label="Brendovi">
+  <div class="page-container">
+    <div class="pp-brands__head">
+      <p class="pp-brands__kicker">BRENDOVI</p>
+      <h3 class="pp-brands__title">Naši partneri</h3>
+    </div>
+
+    <div class="pp-brands__shell" data-pp-brands>
+      <button class="pp-brands__arrow pp-brands__arrow--prev"
+              type="button" data-pp-brands-prev aria-label="Prethodni">‹</button>
+
+      <div class="pp-brands__viewport" data-pp-brands-viewport>
+        <div class="pp-brands__track">
+          {% for b in brands %}
+            <div class="pp-brand" tabindex="0" title="{{ b.name }}">
+              <img src="{{ url_for('static', filename=b.logo_url) }}" alt="{{ b.name }}">
+            </div>
+          {% endfor %}
+        </div>
+        
+      </div>
+
+      <button class="pp-brands__arrow pp-brands__arrow--next"
+              type="button" data-pp-brands-next aria-label="Sljedeći">›</button>
+    </div>
+  </div>
+</section>
+
+
+
+
+
+
+{% endblock %}

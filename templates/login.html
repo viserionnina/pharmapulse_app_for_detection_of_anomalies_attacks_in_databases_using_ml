@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block content %}
+    <style>
+      /* micemo globalni  padding samo za login i register stranicu */
+      body { margin: 0 !important; }
+      main.page-container { padding: 0 !important; max-width: none !important; }
+    </style>
+
+    <section class="pp-auth" style="--pp-auth-bg: url('{{ url_for('static', filename='login_bg_picture.svg') }}');">
+      <div class="pp-auth__bg" aria-hidden="true"></div>
+
+      <div class="pp-auth__card">
+        <div class="pp-auth__logo" aria-hidden="true">
+          <!-- mali icon gore (inline SVG) -->
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M10 17l5-5-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4 12h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M20 4v16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <h2 class="pp-auth__title">Login</h2>
+        <p class="pp-auth__sub">Prijavite se kako biste nastavili.</p>
+
+        <form method="post" class="pp-auth__form">
+          {{ form.hidden_tag() }}
+
+          <!-- USERNAME -->
+          <div class="pp-field">
+            <span class="pp-field__icon" aria-hidden="true">
+              <!-- mail/user icon -->
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M4 6h16v12H4V6z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+              </svg>
+            </span>
+
+            {{ form.username(
+                class_="pp-field__input",
+                placeholder="Username",
+                autocomplete="username"
+            ) }}
+          </div>
+          {% if form.username.errors %}
+            <div class="pp-field__error">{{ form.username.errors[0] }}</div>
+          {% endif %}
+
+          <!-- PASSWORD -->
+          <div class="pp-field" data-pp-pass>
+            <span class="pp-field__icon" aria-hidden="true">
+              <!-- lock icon -->
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M7 11V8a5 5 0 0110 0v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M6 11h12v9H6v-9z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+              </svg>
+            </span>
+
+            {{ form.password(
+                class_="pp-field__input",
+                placeholder="Password",
+                autocomplete="current-password",
+                id="pp-password"
+            ) }}
+
+            <button class="pp-field__toggle" type="button" data-pp-toggle aria-label="Show password">
+              <!-- eye icon -->
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="2"/>
+              </svg>
+            </button>
+          </div>
+          {% if form.password.errors %}
+            <div class="pp-field__error">{{ form.password.errors[0] }}</div>
+          {% endif %}
+
+ 
+          <button type="submit" class="pp-auth__btn">Login</button>
+        </form>
+
+    </section>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const toggle = document.querySelector("[data-pp-toggle]");
+  const pass = document.querySelector("#pp-password");
+  if (!toggle || !pass) return;
+
+  toggle.addEventListener("click", () => {
+    const isHidden = pass.getAttribute("type") === "password";
+    pass.setAttribute("type", isHidden ? "text" : "password");
+    toggle.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
+    toggle.classList.toggle("is-on", isHidden);
+  });
+});
+</script>
+
+{% endblock %}

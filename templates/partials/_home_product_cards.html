@@ -1,0 +1,59 @@
+{% for p in products %}
+  {% set out = (p.stock_qty|int) <= 0 %}
+
+  <div class="home-product {% if out %}is-out{% endif %}">
+    <a class="hp-img" href="{{ url_for('product_detail', product_id=p.id) }}">
+      <img src="{{ url_for('static', filename=p.image_url) }}" alt="{{ p.name }}">
+    </a>
+
+    <div class="hp-body">
+      <div class="hp-top">
+        <div class="hp-name">
+          <a href="{{ url_for('product_detail', product_id=p.id) }}" style="color:inherit; text-decoration:none;">
+            {{ p.name }}
+          </a>
+        </div>
+
+        <div class="hp-badges">
+          {% if p.prescription_required %}<span class="hp-badge">Rx</span>{% endif %}
+          {% if p.is_on_sale %}<span class="hp-badge sale">Akcija</span>{% endif %}
+          {% if out %}<span class="hp-badge out">Out</span>{% endif %}
+        </div>
+      </div>
+
+      {# KATEGORIJE ispod cijene #}
+      {% set cats = (categories_by_product.get(p.id) if categories_by_product else []) %}
+        {% if cats %}
+          <div class="hp-cats">
+            {% for c in cats[:2] %}
+              <a class="hp-cat" href="{{ url_for('products', cat=c.slug) }}">{{ c.name }}</a>
+            {% endfor %}
+            {% if cats|length > 2 %}
+              <span class="hp-cat hp-cat--more">+{{ cats|length - 2 }}</span>
+            {% endif %}
+          </div>
+        {% endif %}
+
+      <div class="hp-price">
+        {% if p.is_on_sale and p.sale_price_cents %}
+          <span class="hp-price-new">€{{ '%.2f' % (p.sale_price_cents/100) }}</span>
+          <span class="hp-price-old">€{{ '%.2f' % (p.price_cents/100) }}</span>
+        {% else %}
+          <span class="hp-price-new">€{{ '%.2f' % (p.price_cents/100) }}</span>
+        {% endif %}
+      </div>
+
+      <div class="hp-actions">
+        <form method="post" action="{{ url_for('add_to_cart', product_id=p.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="quantity" value="1">
+          <input type="hidden" name="next" value="{{ request.full_path }}">
+
+          <button class="hp-buy" style="font-size: 14px;" type="submit" {% if out %}disabled aria-disabled="true"{% endif %}>
+            {% if out %}Nema na zalihi{% else %}Kupi{% endif %}
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endfor %}

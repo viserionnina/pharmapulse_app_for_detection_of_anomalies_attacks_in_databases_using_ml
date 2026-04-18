@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-container" style="padding-right:16px; padding-left:16px;">
+
+  <h2 style="text-align:center; margin: 20px 0 20px;">Products</h2>
+
+  <div class="pp-products-layout">
+    <!-- LEFT: FILTERI -->
+    <aside class="pp-products-side">
+      <div class="card" style="margin-top:12px;">
+        <div style="font-weight:800; margin-bottom:.5rem;">Pretraživanje</div>
+
+        <div class="pp-search" style="margin:0;">
+          <span class="pp-search__icon" aria-hidden="true">⌕</span>
+          <input
+            class="pp-search__input"
+            type="search"
+            placeholder="Pretraži (ime)…"
+            aria-label="Pretraži proizvode"
+            data-products-search
+          >
+          <button class="pp-search__clear" type="button" data-products-clear style="display:none;">×</button>
+        </div>
+
+        <div class="pp-products-count" style="margin-top:.6rem; color:#444;">
+          Prikaz: <strong data-products-count>0</strong>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px;">
+        <div style="font-weight:800; margin-bottom:.5rem;">Kategorije</div>
+
+        <div class="pp-catlist">
+          <a class="pp-btn pp-btn--ghost {% if not active_cat %}is-active{% endif %}"
+             href="{{ url_for('products') }}">
+            Sve
+          </a>
+
+          {% for c in (categories or []) %}
+            <a class="pp-btn pp-btn--ghost {% if active_cat==c.slug %}is-active{% endif %}"
+               href="{{ url_for('products', cat=c.slug) }}">
+              {{ c.name }}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </aside>
+
+    <!-- RIGHT: LISTA -->
+    <section class="pp-products-main">
+      {% for p in products %}
+        {% set out = (p.stock_qty|int) <= 0 %}
+        {% set cats = (categories_by_product.get(p.id) if categories_by_product else []) %}
+
+        <div class="card"
+             data-product-card
+             data-name="{{ p.name|lower }}"
+             data-desc="{{ (p.description or '')|lower }}">
+
+          <div class="row">
+            <!-- IMG + LINK -->
+            <a href="{{ url_for('product_detail', product_id=p.id) }}" style="display:inline-block;">
+              <img src="{{ url_for('static', filename=p.image_url) }}"
+                   alt="{{ p.name }}"
+                   style="width:120px;height:80px;object-fit:cover;border-radius:8px;border:1px solid #eee;">
+            </a>
+
+            <!-- INFO -->
+            <div style="flex:1; min-width:0;">
+              <a href="{{ url_for('product_detail', product_id=p.id) }}"
+                 style="color:inherit; text-decoration:none;">
+                <strong style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                  {{ p.name }}
+                </strong>
+              </a>
+
+              {% if p.prescription_required %}
+                <span class="chip">Prescription Required</span>
+              {% endif %}
+
+              {% if out %}
+                <span class="chip" style="background:#fff2f2;color:#b42318;border:1px solid #f1c0c0;">Out of stock</span>
+              {% endif %}
+
+              <!-- KATEGORIJE CHIPOVI (UMJESTO OPISA) -->
+              {% if cats and cats|length > 0 %}
+                <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; margin-left: 0px;">
+                  {% for c in cats %}
+                    <a href="{{ url_for('products', cat=c.slug) }}"
+                       class="chip"
+                       style="text-decoration:none; background:#fff; border:1px solid rgba(7,113,22); color:rgb(7, 113, 22); margin-left: 0px;">
+                      {{ c.name }}
+                    </a>
+                  {% endfor %}
+                </div>
+              {% else %}
+                <div style="margin-top:10px; margin-bottom:10px; color:#667085; font-size:.92rem;">
+                  —
+                </div>
+              {% endif %}
+
+              {% if not out %}
+                <div style="color:#667085; font-size:.92rem; margin-bottom:.35rem;">
+                  Na zalihi: <strong>{{ p.stock_qty }}</strong>
+                </div>
+              {% endif %}
+
+              {% set cur = p.current_price_cents() %}
+              <div style="font-weight:600;">
+                {% if p.is_on_sale and p.sale_price_cents %}
+                  <span style="text-decoration:line-through;opacity:.6;margin-right:.5rem;">
+                    €{{ '%.2f' % (p.price_cents/100) }}
+                  </span>
+                  <span style="font-weight:800;">
+                    €{{ '%.2f' % (cur/100) }}
+                  </span>
+                  <span class="chip" style="margin-left:.5rem;">AKCIJA</span>
+                {% else %}
+                  €{{ '%.2f' % (cur/100) }}
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- ADD TO CART -->
+            <div>
+              <form method="post" action="{{ url_for('add_to_cart', product_id=p.id) }}">
+                {{ add_form.hidden_tag() }}
+                <input type="hidden" name="next" value="{{ request.full_path }}">
+
+                <div class="pp-cart-controls">
+                  <div class="pp-qty" data-qty>
+                    <button class="pp-qty__btn" type="button" data-qty-minus aria-label="Smanji"
+                            {% if out %}disabled{% endif %}>−</button>
+
+                    {{ add_form.quantity(
+                        class_="pp-qty__input",
+                        min=1,
+                        max=(p.stock_qty if p.stock_qty and p.stock_qty < 99 else 99),
+                        value=1,
+                        inputmode="numeric",
+                        aria_label="Količina",
+                        disabled=out
+                    ) }}
+
+                    <button class="pp-qty__btn" type="button" data-qty-plus aria-label="Povećaj"
+                            {% if out %}disabled{% endif %}>+</button>
+                  </div>
+
+                  <button class="pp-add-btn" style="font-size: 14px;" type="submit" {% if out %}disabled{% endif %}>
+                    {% if out %}Nema na zalihi{% else %}Dodaj u košaricu{% endif %}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+          </div>
+        </div>
+      {% else %}
+        <p>No products yet.</p>
+      {% endfor %}
+    </section>
+  </div>
+
+</div>
+
+<style>
+  .pp-products-layout{
+    display:grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    gap: 16px;
+    align-items:start;
+  }
+
+  .pp-products-side{
+    position: sticky;
+    top: 97px;
+    align-self:start;
+  }
+
+  .pp-catlist{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+
+  /* active filter */
+  .pp-btn--ghost.is-active{
+    border-color: rgba(22,163,74,.55) !important;
+    color:#16a34a !important;
+  }
+
+  @media (max-width: 900px){
+    .pp-products-layout{ grid-template-columns: 1fr; }
+    .pp-products-side{ position: static; }
+    .pp-catlist{ flex-direction: row; flex-wrap: wrap; }
+  }
+</style>
+{% endblock %}

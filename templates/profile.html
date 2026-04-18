@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="pp-profile">
+
+  <div class="pp-profile__head">
+    <h2 class="pp-profile__title">My profile</h2>
+    <p class="pp-profile__sub">Upravljaj svojim podacima i adresama za bržu kupnju.</p>
+  </div>
+
+  <!-- TOP: Trenutni podaci + Uredi -->
+
+    <!-- TRENUTNI -->
+    <div class="card pp-card" style="padding-top: 32px; padding-left: 32px; padding-right: 32px; padding-bottom: 32px;">
+      <div class="pp-card__head">
+        <h3 class="pp-card__title">Trenutni podaci</h3>
+      </div>
+
+      <dl class="pp-kv">
+        <dt>Korisničko ime</dt>
+        <dd>{{ current_user.username }}</dd>
+
+        <dt>Ime i prezime</dt>
+        <dd>{{ profile.full_name or "-" }}</dd>
+
+        <dt>Mobitel</dt>
+        <dd>{{ profile.phone or "-" }}</dd>
+
+        <dt>Država</dt>
+        <dd>{{ profile.country or "-" }}</dd>
+
+        <dt>Poštanski broj</dt>
+        <dd>{{ profile.postal_code or "-" }}</dd>
+      </dl>
+    </div>
+
+    <!-- UREDI -->
+    <div class="card pp-card">
+      <div class="pp-card__head">
+        <h3 class="pp-card__title">Uredi podatke</h3>
+      </div>
+
+      <form method="post" class="pp-form">
+        {{ profile_form.hidden_tag() }}
+        <input type="hidden" name="action" value="save_profile">
+
+        <div class="pp-form__grid">
+          <div class="pp-fieldd">
+            <label>Ime i prezime</label>
+            {{ profile_form.full_name(class="pp-input", placeholder="npr. Pharma Pulse") }}
+          </div>
+
+          <div class="pp-fieldd">
+            <label>Datum rođenja:</label>
+            {{ profile_form.date_of_birth(class="pp-input", placeholder="DD-MM-YYYY", type="text") }}
+          </div>     
+
+          <div class="pp-fieldd">
+            <label>Mobitel</label>
+            {{ profile_form.phone(class="pp-input", placeholder="npr. +385 99 123 4567") }}
+          </div>
+
+          <div class="pp-fieldd">
+            <label>Email</label>
+            {{ profile_form.email(class="pp-input", placeholder="npr. ime@pharmapulse.com") }}
+          </div>          
+
+          <div class="pp-fieldd">
+            <label>Država</label>
+            {{ profile_form.country(class="pp-input", placeholder="npr. Hrvatska") }}
+          </div>
+
+          <div class="pp-fieldd">
+            <label>Poštanski broj</label>
+            {{ profile_form.postal_code(class="pp-input", placeholder="npr. 51000") }}
+          </div>
+
+        </div>
+
+        <div class="pp-actions">
+          <button class="pp-btn" type="submit">Spremi</button>
+        </div>
+      </form>
+    </div>
+
+
+  <!-- BOTTOM: Adrese + Dodaj -->
+  <section class="pp-profile__grid" style="margin-top:1rem;">
+    <!-- ADRESE -->
+    <div class="card pp-card">
+      <div class="pp-card__head" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <h3 class="pp-card__title" style="margin:0;">Adrese</h3>
+        <span class="pp-pill" style="margin-left:auto;">{{ addresses|length }} ukupno</span>
+      </div>
+
+      {% if addresses %}
+        <div class="pp-addresses">
+          {% for a in addresses %}
+            <div class="pp-address">
+              <div class="pp-address__main">
+                <div class="pp-address__top">
+                  <strong>Adresa</strong>
+                  {% if a.is_default %}<span class="chip">Default</span>{% endif %}
+                </div>
+
+                <div class="pp-address__text">
+                  {% if a.full_name %}{{ a.full_name }}<br>{% endif %}
+                  {% if a.phone %}{{ a.phone }}<br>{% endif %}
+                  {{ a.line1 }}{% if a.line2 %}, {{ a.line2 }}{% endif %}<br>
+                  {{ a.city }} {{ a.postal_code }}, {{ a.country }}
+                </div>
+              </div>
+
+              <div class="pp-address__actions">
+                <form method="post">
+                  {{ profile_form.hidden_tag() }}
+                  <input type="hidden" name="action" value="set_default_address">
+                  <input type="hidden" name="address_id" value="{{ a.id }}">
+                  <button class="pp-btn pp-btn--ghost" type="submit">Default</button>
+                </form>
+
+                {% if not a.is_default %}
+                  <form method="post">
+                    {{ profile_form.hidden_tag() }}
+                    <input type="hidden" name="action" value="delete_address">
+                    <input type="hidden" name="address_id" value="{{ a.id }}">
+                    <button class="pp-btn pp-btn--danger" type="submit">Obriši</button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p style="margin:0;color:#666;">Nema adresa.</p>
+      {% endif %}
+    </div>
+
+    <!-- DODAJ -->
+    <div class="card pp-card">
+      <div class="pp-card__head">
+        <h3 class="pp-card__title">Dodaj novu adresu</h3>
+      </div>
+
+      <form method="post" class="pp-form">
+        {{ address_form.hidden_tag() }}
+        <input type="hidden" name="action" value="add_address">
+
+        <div class="pp-form__grid pp-form__grid--one">
+          <div class="pp-fieldd">
+            <label>Adresa 1</label>
+            {{ address_form.line1(class="pp-input", placeholder="Ulica i broj") }}
+          </div>
+
+          <div class="pp-fieldd">
+            <label>Adresa 2</label>
+            {{ address_form.line2(class="pp-input", placeholder="Kat, stan, dodatno (opcionalno)") }}
+          </div>
+
+          <div class="pp-fieldd">
+            <label>Grad</label>
+            {{ address_form.city(class="pp-input", placeholder="npr. Rijeka") }}
+          </div>
+
+          <div class="pp-fieldd">
+            <label>Poštanski broj</label>
+            {{ address_form.postal_code(class="pp-input", placeholder="npr. 51000") }}
+          </div>
+
+          <div class="pp-fieldd">
+            <label>Država</label>
+            {{ address_form.country(class="pp-input", placeholder="npr. Hrvatska") }}
+          </div>
+        </div>
+
+        <div class="pp-actions">
+          <button class="pp-btn" type="submit">Dodaj</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- KARTICA -->
+  <div class="card pp-card" style="margin-top:1rem;">
+    <div class="pp-card__head">
+      <h3 class="pp-card__title">Kartica</h3>
+    </div>
+    <p style="margin:0;color:#666;">
+      Radi sigurnosti se <strong>ne sprema broj kartice</strong> u bazu.
+    </p>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="page-container" style="max-width:1100px; margin:0 auto; padding:16px;">
+
+    <div class="pp-profile__head" style="margin: 10px 0 18px;">
+        <h2 style="margin:0;">Admin panel</h2>
+        <p style="margin:.25rem 0 0; color:#666;">Za pregled korisnika, narudžbi i zaliha.</p>
+    </div>
+
+    <!-- STATS -->
+    <div class="row" style="display:flex; gap:12px; flex-wrap:wrap; align-items:stretch;">
+        <a href="{{ url_for('admin_users') }}"
+            class="card"
+            style="flex:1; min-width:220px; display:block; text-decoration:none; color:inherit;">
+            <h3 style="margin:0 0 .5rem;">Korisnici</h3>
+            <div style="font-size:28px; font-weight:800;">{{ stats.users or 0 }}</div>
+            <div style="color:#666;">Ukupno registriranih</div>
+        </a>
+
+        <div class="card" style="flex:1; min-width:220px;">
+        <h3 style="margin:0 0 .5rem;">Narudžbe</h3>
+        <div style="font-size:28px; font-weight:800;">{{ stats.orders_total or 0 }}</div>
+        <div style="color:#666;">Ukupno narudžbi</div>
+        </div>
+
+        <div class="card" style="flex:1; min-width:220px;">
+        <h3 style="margin:0 0 .5rem;">Pending</h3>
+        <div style="font-size:28px; font-weight:800;">{{ stats.orders_pending or 0 }}</div>
+        <div style="color:#666;">Čeka odobrenje</div>
+        </div>
+
+        <div class="card" style="flex:1; min-width:220px;">
+        <h3 style="margin:0 0 .5rem;">Out of stock</h3>
+        <div style="font-size:28px; font-weight:800;">{{ stats.products_oos or 0 }}</div>
+        <div style="color:#666;">Proizvodi bez zalihe</div>
+        </div>
+    </div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="card" style="margin-top:12px;">
+        <div class="row" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div>
+            <h3 style="margin:0;">Brze akcije</h3>
+            <p style="margin:.25rem 0 0; color:#666;">Upravljanje proizvodima i narudžbama.</p>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a class="pp-btn" style="font-size: 14px;" href="{{ url_for('admin_products') }}">Proizvodi</a>
+            <a class="pp-btn pp-btn--ghost" style="font-size: 14px;" href="{{ url_for('admin_categories') }}">Kategorije</a>
+            <a class="pp-btn pp-btn--ghost" style="font-size: 14px;" href="{{ url_for('admin_orders') }}">Narudžbe</a>
+            <a class="pp-btn pp-btn--ghost" style="font-size: 14px;" href="{{ url_for('admin_users') }}">Korisnici</a>
+            <a class="pp-btn pp-btn--ghost" style="font-size: 14px;" href="{{ url_for('admin_carts') }}">Košarice</a>
+        </div>
+        </div>
+    </div>
+
+    <!-- OUT OF STOCK LIST -->
+    <div class="card" style="margin-top:12px;">
+        <div class="row" style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <h3 style="margin:0;">Out of stock proizvodi</h3>
+        <a class="pp-btn pp-btn--ghost" style="font-size: 14px;" href="{{ url_for('admin_products') }}">Otvori proizvode</a>
+        </div>
+
+        {% if oos and oos|length > 0 %}
+        <div style="margin-top:10px;">
+            {% for p in oos %}
+            <div class="row" style="display:flex; justify-content:space-between; align-items:center; padding:.6rem 0; border-top:1px solid rgba(0,0,0,.08);">
+                <div>
+                <strong>#{{ p.id }}</strong> — {{ p.name }}
+                <span class="chip" style="margin-left:.4rem;">Out of stock</span>
+                </div>
+                <div style="display:flex; gap:8px;">
+                <a class="pp-btn pp-btn--ghost" style="font-size: 14px;" href="{{ url_for('admin_product_edit', product_id=p.id) }}">Restock</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="margin:.5rem 0 0; color:#666;">Trenutno nema proizvoda bez zalihe. </p>
+        {% endif %}
+    </div>
+
+    </div>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-container">
+  {% if items %}
+    <h2 style="text-align:center; margin: 10px 0 18px;">My Cart</h2>
+
+    {% for item in items %}
+      {% set unit = item.product.current_price_cents() %}
+      {% set line_total = unit * item.quantity %}
+      {% set on_sale = (item.product.is_on_sale and item.product.sale_price_cents) %}
+      {% set img = item.product.image_url %}
+      {% set is_url = img.startswith('http://') or img.startswith('https://') %}
+      {% set img_src = img if is_url else url_for('static', filename=img) %}
+
+      <div class="card" style="display:flex; gap:12px; align-items:center; justify-content:space-between;">
+        <div style="display:flex; gap:12px; align-items:center; min-width:0;">
+          <img
+            src="{{ img_src }}"
+            alt="{{ item.product.name }}"
+            style="width:90px;height:70px;object-fit:cover;border-radius:12px;border:1px solid rgba(0,0,0,.08); background:#f6f6f6;"
+          >
+
+          <div style="min-width:0;">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <strong style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                {{ item.product.name }}
+              </strong>
+
+              {% if on_sale %}
+                <span class="chip" style="margin-left:0; background:#ecfdf3; border:1px solid rgba(22,163,74,.25); color:#16a34a;">
+                  AKCIJA
+                </span>
+              {% endif %}
+            </div>
+
+            <div style="color:#666; margin-top:.2rem;">
+              Qty: <strong>{{ item.quantity }}</strong>
+            </div>
+
+            <div style="margin-top:.25rem; color:#111;">
+              {% if on_sale %}
+                <span style="opacity:.65; text-decoration:line-through; margin-right:.35rem;">
+                  €{{ '%.2f' % (item.product.price_cents/100) }}
+                </span>
+                <span style="font-weight:900;">
+                  €{{ '%.2f' % (unit/100) }}
+                </span>
+                <span style="color:#666; font-size:.92rem;"> / kom</span>
+              {% else %}
+                <span style="font-weight:900;">
+                  €{{ '%.2f' % (unit/100) }}
+                </span>
+                <span style="color:#666; font-size:.92rem;"> / kom</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align:right; flex:0 0 auto;">
+          <div style="display:flex; align-items:center; justify-content:flex-end; gap:20px;">
+            <div style="text-align:right;">
+              <div style="color:#666; font-size:.9rem;">Ukupno</div>
+              <div style="font-weight:900; font-size:1.05rem;">
+                €{{ '%.2f' % (line_total/100) }}
+              </div>
+            </div>
+        
+            <form method="post" action="{{ url_for('cart') }}" style="margin:0;">
+              {{ clear_form.hidden_tag() }}
+              <input type="hidden" name="action" value="remove_item">
+              <input type="hidden" name="product_id" value="{{ item.product.id }}">
+        
+              <button type="submit"
+                      aria-label="Ukloni iz košarice"
+                      title="Ukloni"
+                      style="
+                        width:30px; height:30px;
+                        border-radius:999px;
+                        border:1px solid rgba(185,28,28,.35);
+                        background:#fff;
+                        color:#b91c1c;
+                        display:inline-flex;
+                        align-items:center;
+                        justify-content:center;
+                        cursor:pointer;
+                        font-weight:900;
+                      ">
+                ×
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    {% endfor %}
+
+    {# PDV 25% #}
+    {% set pdv_rate = 0.25 %}
+    {% set subtotal = total_cents %}
+    {% set pdv_cents = (subtotal * pdv_rate) | round(0, 'common') | int %}
+    {% set grand_total = subtotal + pdv_cents %}
+
+    <div class="card" style="margin-top:12px;">
+      <div class="row" style="margin-bottom:.35rem;">
+        <div style="color:#666;">Subtotal</div>
+        <div style="font-weight:800;">€{{ '%.2f' % (subtotal/100) }}</div>
+      </div>
+
+      <div class="row" style="margin-bottom:.35rem;">
+        <div style="color:#666;">PDV (25%)</div>
+        <div style="font-weight:800;">€{{ '%.2f' % (pdv_cents/100) }}</div>
+      </div>
+
+      <div class="row" style="padding-top:.6rem; border-top:1px solid rgba(0,0,0,.08);">
+        <strong>Total</strong>
+        <div style="font-weight:900; font-size:1.1rem;">€{{ '%.2f' % (grand_total/100) }}</div>
+      </div>
+    </div>
+
+    <div class="pp-cart-actions">
+      <form method="post" action="{{ url_for('cart') }}">
+        {{ clear_form.hidden_tag() }}
+        <input type="hidden" name="action" value="clear_cart">
+        <button type="submit" class="pp-add-btn" style="border-radius:50px;">Clear Cart</button>
+      </form>
+
+      <form method="post" action="{{ url_for('checkout') }}">
+        {{ checkout_form.hidden_tag() }}
+        <button type="submit" class="pp-add-btn" style="border-radius:50px; font-size: 14px;">Checkout</button>
+      </form>
+    </div>
+
+  {% else %}
+    <div class="pp-empty">
+      <h2 style="justify-self: center; margin-bottom: 3px;">
+        Hey <em>{{ current_user.username }}</em>, Your Cart is Empty
+      </h2>
+      <p style="margin-top: 6px; margin-bottom: 32px;">Add something to make me happy :)</p>
+
+      <img
+        class="pp-empty__img"
+        src="{{ url_for('static', filename='empty_cart_logo.svg') }}"
+        alt="Empty cart"
+      >
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-container">
+  <div class="row" style="justify-content:space-between; align-items:center; margin:1rem 0;">
+    <h2 style="margin:0;">Admin — Proizvodi</h2>
+    <a class="pp-btn" style="font-size: 14px;" href="{{ url_for('admin_product_new') }}">+ Novi proizvod</a>
+  </div>
+
+  <div class="card">
+    <table style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th style="text-align:left; padding:.6rem;">ID</th>
+          <th style="text-align:left; padding:.6rem;">Naziv</th>
+          <th style="text-align:left; padding:.6rem;">Stock</th>
+          <th style="text-align:left; padding:.6rem;">Aktivan</th>
+          <th style="text-align:left; padding:.6rem;">Akcija</th>
+          <th style="text-align:left; padding:.6rem;">Uredi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in products %}
+          <tr style="border-top:1px solid rgba(0,0,0,.08);">
+            <td style="padding:.6rem;">{{ p.id }}</td>
+            <td style="padding:.6rem;">
+              {{ p.name }}
+              {% if p.stock_qty|int <= 0 %}
+                <span class="chip" style="margin-left:.4rem;">Out of stock</span>
+              {% endif %}
+            </td>
+            <td style="padding:.6rem;">{{ p.stock_qty }}</td>
+            <td style="padding:.6rem;">{{ p.is_active }}</td>
+            <td style="padding:.6rem;">
+              {% if p.is_on_sale %}DA{% else %}NE{% endif %}
+            </td>
+            <td style="padding:.6rem;">
+              <a class="pp-btn pp-btn--ghost" href="{{ url_for('admin_product_edit', product_id=p.id) }}">Uredi</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

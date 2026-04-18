@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-container" style="max-width:1100px; margin:0 auto; padding:16px;">
+
+  {# Breadcrumb #}
+  <div style="color:#667085; font-size:.92rem; margin-bottom:10px;">
+    <a href="{{ url_for('index') }}" style="color:inherit; text-decoration:none;">Početna</a>
+    <span style="opacity:.6;">›</span>
+    <a href="{{ url_for('products') }}" style="color:inherit; text-decoration:none;">Products</a>
+    {% if product_categories and product_categories|length > 0 %}
+      <span style="opacity:.6;">›</span>
+      <a href="{{ url_for('products', cat=product_categories[0].slug) }}" style="color:inherit; text-decoration:none;">
+        {{ product_categories[0].name }}
+      </a>
+    {% endif %}
+  </div>
+
+  <div class="card" style="padding:16px; border: 0px;">
+    <div style="display:grid; grid-template-columns: 420px 1fr; gap:18px; align-items:start;">
+      {# Slika (za sada 1 slika iz baze) #}
+      <div>
+        {% set img = product.image_url %}
+        {% set is_url = img.startswith('http://') or img.startswith('https://') %}
+        {% set img_src = img if is_url else url_for('static', filename=img) %}
+
+        <img src="{{ img_src }}" alt="{{ product.name }}"
+             style="width:100%; object-fit:cover; border-radius:16px; border:1px solid rgba(0,0,0,.08); background:#f6f6f6;">
+      </div>
+
+      {# Info #}
+      <div style="min-width:0;">
+        <h2 style="margin:0 0 6px; line-height:1.15;">{{ product.name }}</h2>
+
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px;">
+          {% if product.prescription_required %}
+            <span class="chip">Prescription Required</span>
+          {% endif %}
+
+          {% if product.is_on_sale and product.sale_price_cents %}
+            <span class="chip" style="background:#ecfdf3; border:1px solid rgba(22,163,74,.25); color:#16a34a; margin-left: 0px;">AKCIJA</span>
+          {% endif %}
+
+          {% if (product.stock_qty|int) <= 0 %}
+            <span class="chip" style="background:#fff2f2;color:#b42318;border:1px solid #f1c0c0; margin-left: 0px;">Out of stock</span>
+          {% else %}
+            <span class="chip" style="background:#f8fafc; border:1px solid rgba(0,0,0,.08); color:#111; margin-left: 0px;">
+              Na zalihi: <strong style="margin-left:6px;">{{ product.stock_qty }}</strong>
+            </span>
+          {% endif %}
+        </div>
+
+        {# Cijena #}
+        {% set cur = product.current_price_cents() %}
+        <div style="margin:8px 0 14px;">
+          {% if product.is_on_sale and product.sale_price_cents %}
+            <div style="font-size:.95rem; opacity:.65; text-decoration:line-through;">
+              €{{ '%.2f' % (product.price_cents/100) }}
+            </div>
+            <div style="font-size:1.6rem; font-weight:900;">
+              €{{ '%.2f' % (cur/100) }}
+            </div>
+          {% else %}
+            <div style="font-size:1.6rem; font-weight:900;">
+              €{{ '%.2f' % (cur/100) }}
+            </div>
+          {% endif %}
+        </div>
+
+        {# Kategorije (chipovi) #}
+        {% if product_categories and product_categories|length > 0 %}
+          <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 10px;">
+            {% for c in product_categories %}
+              <a href="{{ url_for('products', cat=c.slug) }}"
+                 class="chip"
+                 style="text-decoration:none; background:rgb(255, 255, 255); border:1px solid rgba(7,113,22); color:rgb(7, 113, 22); font-size: 14px; padding: 3px 12px 4px 12px;">
+                {{ c.name }}
+              </a>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {# Add to cart #}
+        {% set out = (product.stock_qty|int) <= 0 %}
+        <form method="post" action="{{ url_for('add_to_cart', product_id=product.id) }}">
+          {{ add_form.hidden_tag() }}
+
+          <div class="pp-cart-controls" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <div class="pp-qty" data-qty>
+              <button class="pp-qty__btn" type="button" data-qty-minus aria-label="Smanji" {% if out %}disabled{% endif %}>−</button>
+
+              {{ add_form.quantity(
+                  class_="pp-qty__input",
+                  min=1,
+                  max=(product.stock_qty if product.stock_qty and product.stock_qty < 99 else 99),
+                  value=1,
+                  inputmode="numeric",
+                  aria_label="Količina",
+                  disabled=out
+              ) }}
+
+              <button class="pp-qty__btn" type="button" data-qty-plus aria-label="Povećaj" {% if out %}disabled{% endif %}>+</button>
+            </div>
+
+            <button class="pp-add-btn" type="submit" {% if out %}disabled{% endif %}>
+              {% if out %}Nema na zalihi{% else %}Dodaj u košaricu{% endif %}
+            </button>
+          </div>
+        </form>
+
+
+      </div>
+    </div>
+
+    {# TABOVI: Opis / Dostava / (kasnije) Recenzije #}
+    <div style="margin-top:18px; border-top:1px solid rgba(0,0,0,.08); padding-top:14px;">
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button type="button" class="pp-btn pp-btn--ghost is-active" data-tab-btn="opis">Opis</button>
+        <button type="button" class="pp-btn pp-btn--ghost" data-tab-btn="dostava">Dostava</button>
+      </div>
+
+      <div style="margin-top:12px;">
+        <div data-tab="opis">
+          <div style="color:#344054; line-height:1.55;">
+            {{ (product.description or "Nema opisa.")|replace('\n','<br>')|safe }}
+          </div>
+        </div>
+
+        <div data-tab="dostava" style="display:none;">
+          <div style="color:#344054; line-height:1.55;">
+            <strong>Dostava</strong><br>
+            Naše pakete dostavlja <strong>GLS</strong> <br>
+            Sve narudžbe ćemo poslati u roku od <strong>1-3 radna dana</strong>(subote, nedjelje i praznici isključeni), ovisno o trenutnoj raspoloživosti artikla. <br>
+            Ukoliko vam nećemo moći isporučiti pošiljku u navedenom roku ili uopće, o tome ćemo vas obavijestiti. Vi tada možete odlučiti hoćete li prekinuti narudžbu ili pričekati da naručeni proizvod postane dostupan. <br>
+            <br>
+            Kako bismo osigurali što kvalitetniju komunikaciju između Vas i dostavljača, dostavljaču ćemo ustupiti Vaš kontakt broj telefona koji ste nam naveli prilikom registracije.<br>
+            - Dostava je <strong>besplatna</strong> za iznos narudžbe iznad 89,99 €.<br>
+            - Za iznos narudžbe manji od 89,99 €, cijena dostave je 3,99 € za dostavu na GLS paketomat.<br>
+            - GLS dostava na vašu adresu iznosi 4,99 €.<br>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Povezani proizvodi #}
+  {% if related_products and related_products|length > 0 %}
+    <div class="pp-profile__head" style="margin:16px 0 10px; ">
+      <h3 style="margin:0;">Povezani proizvodi</h3>
+      <p style="margin:.25rem 0 0; color:#666;">Iz istih kategorija.</p>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:8px;">
+      {% for rp in related_products %}
+        <a class="card" href="{{ url_for('product_detail', product_id=rp.id) }}"
+           style="text-decoration:none; color:inherit; padding:12px; border: 0px;">
+          {% set rimg = rp.image_url %}
+          {% set ris_url = rimg.startswith('http://') or rimg.startswith('https://') %}
+          {% set rsrc = rimg if ris_url else url_for('static', filename=rimg) %}
+
+          <img src="{{ rsrc }}" alt="{{ rp.name }}"
+               style="width:100%; height:auto; object-fit:cover; border-radius:14px; border:1px solid rgba(0,0,0,.08); background:#f6f6f6;">
+          <div style="margin-top:10px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            {{ rp.name }}
+          </div>
+          {% set rcur = rp.current_price_cents() %}
+          <div style="margin-top:4px; font-weight:400;">
+            €{{ '%.2f' % (rcur/100) }}
+            {% if rp.is_on_sale and rp.sale_price_cents %}
+              <span class="chip" style="margin-left:.4rem; background:#ecfdf3; border:1px solid rgba(22,163,74,.25); color:#16a34a;">AKCIJA</span>
+            {% endif %}
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // Tabs
+  const btns = document.querySelectorAll("[data-tab-btn]");
+  const panels = document.querySelectorAll("[data-tab]");
+  btns.forEach(b => {
+    b.addEventListener("click", () => {
+      const key = b.getAttribute("data-tab-btn");
+      btns.forEach(x => x.classList.remove("is-active"));
+      b.classList.add("is-active");
+      panels.forEach(p => p.style.display = (p.getAttribute("data-tab") === key) ? "" : "none");
+    });
+  });
+
+  // Qty +/-
+  document.querySelectorAll("[data-qty]").forEach(q => {
+    const input = q.querySelector("input");
+    const minus = q.querySelector("[data-qty-minus]");
+    const plus = q.querySelector("[data-qty-plus]");
+    if (!input || !minus || !plus) return;
+
+    const clamp = (v) => {
+      const min = parseInt(input.getAttribute("min") || "1", 10);
+      const max = parseInt(input.getAttribute("max") || "99", 10);
+      v = isNaN(v) ? min : v;
+      return Math.max(min, Math.min(max, v));
+    };
+
+    minus.addEventListener("click", () => input.value = clamp(parseInt(input.value || "1", 10) - 1));
+    plus.addEventListener("click", () => input.value = clamp(parseInt(input.value || "1", 10) + 1));
+  });
+});
+</script>
+{% endblock %}

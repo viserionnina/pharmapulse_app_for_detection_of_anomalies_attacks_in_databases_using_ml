@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-container" style="max-width:1100px; margin:0 auto; padding:16px;">
+
+  <div class="pp-profile__head" style="margin:10px 0 18px;">
+    <h2 style="margin:0;">Kategorije (Admin)</h2>
+    <p style="margin:.25rem 0 0; color:#666;">Dodaj/uredi/obriši kategorije i parent-child strukturu.</p>
+  </div>
+
+  <div class="card">
+    <div class="row" style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+      <div>
+        <strong>Ukupno:</strong> {{ categories|length if categories else 0 }}
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <a class="pp-btn" style="font-size: 14px;" href="{{ url_for('admin_category_new') }}">+ Nova kategorija</a>
+        <a class="pp-btn pp-btn--ghost" style="font-size: 14px;" href="{{ url_for('admin_index') }}">← Admin</a>
+      </div>
+    </div>
+
+    {% if categories and categories|length > 0 %}
+      <div style="overflow-x:auto; margin-top:16px;">
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr style="text-align:left; border-bottom:1px solid rgba(0,0,0,.12);">
+              <th style="padding:.6rem;">ID</th>
+              <th style="padding:.6rem;">Naziv</th>
+              <th style="padding:.6rem;">Slug</th>
+              <th style="padding:.6rem;">Parent ID</th>
+              <th style="padding:.6rem; width:240px;">Akcije</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in categories %}
+              <tr style="border-top:1px solid rgba(0,0,0,.08);">
+                <td style="padding:.6rem;">{{ c.id }}</td>
+                <td style="padding:.6rem; font-weight:700;">{{ c.name }}</td>
+                <td style="padding:.6rem; color:#555;">{{ c.slug }}</td>
+                <td style="padding:.6rem; color:#555;">{{ c.parent_id if c.parent_id else "-" }}</td>
+                <td style="padding:.6rem;">
+                  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <a class="pp-btn pp-btn--ghost" style="font-size: 14px;" href="{{ url_for('admin_category_edit', cat_id=c.id) }}">Uredi</a>
+
+                    <form method="post"
+                          action="{{ url_for('admin_category_delete', cat_id=c.id) }}"
+                          style="display:inline-block;"
+                          onsubmit="return confirm('Obrisati kategoriju #{{ c.id }} ({{ c.name }})?');">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button class="pp-btn pp-btn--danger" type="submit">Obriši</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p style="margin:.75rem 0 0; color:#666;">Nema kategorija. Dodaj prvu kategoriju.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

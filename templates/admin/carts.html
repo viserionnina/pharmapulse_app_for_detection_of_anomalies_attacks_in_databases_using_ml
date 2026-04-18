@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-container" style="max-width:1100px; margin:0 auto; padding:16px;">
+  <div class="pp-profile__head" style="margin:10px 0 18px;">
+    <h2 style="margin:0;">Košarice (Admin)</h2>
+    <p style="margin:.25rem 0 0; color:#666;">Korisnici koji trenutno imaju proizvode u košarici.</p>
+  </div>
+
+  <div class="card">
+    {% if carts and carts|length > 0 %}
+      <table style="width:100%; border-collapse:collapse;">
+        <thead>
+          <tr style="text-align:left; border-bottom:1px solid rgba(0,0,0,.12);">
+            <th style="padding:.6rem;">User</th>
+            <th style="padding:.6rem;">Email</th>
+            <th style="padding:.6rem; width:120px;">Stavke</th>
+            <th style="padding:.6rem; width:120px;">Količina</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in carts %}
+            <tr style="border-top:1px solid rgba(0,0,0,.08);">
+              <td style="padding:.6rem;">
+                <strong>#{{ r.user_id }}</strong> — {{ r.username }}
+                {% if r.full_name %}<div style="color:#666; font-size:13px;">{{ r.full_name }}</div>{% endif %}
+              </td>
+              <td style="padding:.6rem;">{{ r.email or "-" }}</td>
+              <td style="padding:.6rem;">{{ r.line_count }}</td>
+              <td style="padding:.6rem;"><strong>{{ r.total_qty }}</strong></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p style="color:#666; margin:0;">Trenutno nema aktivnih košarica.</p>
+    {% endif %}
+  </div>
+
+  <div style="margin-top:12px;">
+    <a class="pp-btn pp-btn--ghost" href="{{ url_for('admin_index') }}">← Natrag na Admin</a>
+  </div>
+</div>
+{% endblock %}
