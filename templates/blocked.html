@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="blocked-wrap">
+  <div class="blocked-icon"><i class="fa fa-shield-halved"></i></div>
+  <h2 class="blocked-title">Pristup blokiran</h2>
+  <p class="blocked-sub">
+    Sustav za detekciju anomalija identificirao je potencijalni SQL injection napad u vašem zahtjevu.
+    Pokušaj je zabilježen.
+  </p>
+  {% if details %}
+  <div class="blocked-details">
+    <strong>Detekcija:</strong><br>
+    RF model: {{ details.rf_pred }} (vjerojatnost: {{ details.rf_proba }})<br>
+    IF model: {{ details.if_pred }} (anomaly score: {{ details.if_score }})
+  </div>
+  {% endif %}
+  <a href="{{ url_for('login') }}" class="blocked-btn">Povratak na login</a>
+</div>
+{% endblock %}

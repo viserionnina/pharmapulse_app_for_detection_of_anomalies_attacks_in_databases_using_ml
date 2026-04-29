@@ -5,3 +5,14 @@ __pycache__/
 .env
 *.db
 *.sqlite3
+
+# ML — preveliki dataset (733MB) i binarni model artefakti.
+
+#Dataset moguće preuzeti odavdje:
+#Quetel, G., Pautet, L., Alata, E., Robert, T., & Gimenez, P.-F. (2025). 
+#Superviz25-SQL: SQL Injection Detection Dataset [Data set]. 
+#Zenodo. https://doi.org/10.5281/zenodo.17086037
+
+# Reproducibilni: pokrenuti generate_login_dataset.py + train.py
+ml/datasets/dataset_clean.csv
+ml/datasets/models/

@@ -1263,7 +1263,43 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; marg
 }
 
 
-
+.blocked-wrap {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 1.2rem;
+    text-align: center;
+    padding: 2rem;
+  }
+  .blocked-icon { font-size: 4rem; color: #e53e3e; }
+  .blocked-title { font-size: 1.8rem; font-weight: 700; color: #1a1a2e; margin: 0; }
+  .blocked-sub { color: #555; font-size: 1rem; max-width: 480px; margin: 0; }
+  .blocked-details {
+    background: #fff5f5;
+    border: 1px solid #feb2b2;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: #c53030;
+    max-width: 560px;
+    text-align: left;
+    word-break: break-all;
+  }
+  .blocked-btn {
+    margin-top: 0.5rem;
+    padding: 0.6rem 1.6rem;
+    background: #1a1a2e;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .blocked-btn:hover { background: #e53e3e; }
 
 
 
