@@ -19,6 +19,9 @@ PharmaPulse is a demo pharmacy web application used as an environment for resear
 - Python 3.9+
 - MySQL server
 
+### Dataset
+Quetel, G., Pautet, L., Alata, E., Robert, T., & Gimenez, P.-F. (2025). Superviz25-SQL: SQL Injection Detection Dataset [Data set]. Zenodo. https://doi.org/10.5281/zenodo.17086037
+
 ### Steps
 
 1. Clone the repository:
