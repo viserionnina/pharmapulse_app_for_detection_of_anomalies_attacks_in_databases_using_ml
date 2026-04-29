@@ -1,6 +1,6 @@
-# PharmaPulse — Anomaly and Attack Detection System in Databases
+# Detection of Anomalies and Attacks in Databases Using Machine Learning: PharmaPulse — A Demonstration Web Application
 
-Final thesis project — Implementation of a system for anomaly and potential attack detection in databases using machine learning methods.
+Final thesis project — The aim of the work is to implement a system for detecting anomalies and potential attacks in databases using machine learning methods. To analyze security challenges in working with databases, the most common types of attacks with an emphasis on SQL injection, and existing approaches to detecting anomalies and malicious activities in information systems. To develop a prototype system for analyzing and classifying SQL queries using **supervised and unsupervised learning techniques**. To train and evaluate the machine learning model on **publicly available datasets containing legitimate and malicious SQL queries**. **To implement a demonstration web application that will enable the demonstration of the work of the developed model for detecting suspicious activities and potential attacks.** To assess the effectiveness of the system standard evaluation metrics are to be used.
 
 ## About
 
@@ -19,8 +19,13 @@ PharmaPulse is a demo pharmacy web application used as an environment for resear
 - Python 3.9+
 - MySQL server
 
-### Dataset
+### Datasets
+```bash
 Quetel, G., Pautet, L., Alata, E., Robert, T., & Gimenez, P.-F. (2025). Superviz25-SQL: SQL Injection Detection Dataset [Data set]. Zenodo. https://doi.org/10.5281/zenodo.17086037
+```
+```bash
+(OPTIONAL GENERATED DATASET) ml/datasets/generate_login_dataset.py
+```
 
 ### Steps
 
@@ -55,7 +60,17 @@ SECRET_KEY=your-secret-key
 mysql -u root -p pharmapulse < pharmapulse_base.sql
 ```
 
-6. Run the application:
+7. (OPTIONAL) Run the generated dataset:
+```bash
+python3 ml/datasets/generate_login_dataset.py
+```
+
+8. Run ml training:
+```bash
+python3 ml/train.py      
+```
+
+9. Run the application:
 ```bash
 python3 app.py
 ```
@@ -66,11 +81,15 @@ The app will be available at `http://127.0.0.1:5000`
 
 ```
 pharmapulse_app/
-├── ml_training             # Folder for ml training
-├── dataset/
-│   ├── Train.csv
-│   ├── Val.csv
-│   └── Test.csv
+├── ml/                     # Folder for ml training
+│   ├── dataset/
+│       ├── model/
+│       ├── dataset_clean.csv
+│       ├── dataset_login_generated.csv
+│       └── generate_login_dataset.py
+│   ├── __init__.py
+│   ├── train.py            # ML training
+│   └── plots/
 ├── app.py                  # Main Flask application
 ├── pharmapulse_base.sql    # Database schema and seed data
 ├── requirements.txt        # Python dependencies
