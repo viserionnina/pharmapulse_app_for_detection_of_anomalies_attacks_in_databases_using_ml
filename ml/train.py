@@ -228,7 +228,7 @@ kw_if_val_scaled = scaler.transform(kw_if_val)
 kw_test_scaled  = scaler.transform(kw_if_test)
 
 # Contamination = 0.15 (pretpostavka da ~15% upita u produkciji može biti napad)
-# n_estimators - stabla u šumi (više stabala = stabilniji model, ali duže treniranje) - za manje datasetove max_samples=auto
+# n_estimators - stabla u šumi (više stabala = stabilniji model, ali duže treniranje) - za manje datasetove max_samples=auto automatski se stavlja
 iso = IsolationForest(n_estimators=1000, contamination=0.15, random_state=42, max_samples=10000)
 iso.fit(kw_train_scaled)
 
@@ -274,6 +274,8 @@ with open(os.path.join(MODELS_DIR, "sql_keywords.pkl"), "wb") as f:
     pickle.dump(SQL_KEYWORDS, f)
 with open(os.path.join(MODELS_DIR, "if_threshold.pkl"), "wb") as f:
     pickle.dump(best_thresh, f)
+
+
 
 
 # ============================================================
