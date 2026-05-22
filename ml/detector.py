@@ -2,7 +2,7 @@ import os
 import pickle
 import numpy as np
 
-MODELS_DIR = os.path.join(os.path.dirname(__file__), "datasets", "models")
+MODELS_DIR = os.path.join(os.path.dirname(__file__), "datasets", "models", "DS6")
 
 SQL_KEYWORDS = [
     # Osnovne SQL naredbe
