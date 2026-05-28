@@ -29,6 +29,7 @@ from functools import wraps
 from werkzeug.utils import secure_filename
 from flask_wtf.file import FileField, FileAllowed
 import uuid
+from ml.detector import detect as ml_detect
 
 # --- App Setup ---
 app = Flask(__name__)
@@ -341,6 +342,14 @@ SQLI_TAUTOLOGY_PATTERNS = [
     r"""(?i)'\s*--""",
     r"""(?i)'\s"""
 ]
+
+# Trigger za ML: ' praćen SQL operatorom/terminatorom = pravi injection signal.
+# Sama trailing ' (npr. "password'") nije napad i ne aktivira ML.
+_SQLI_TRIGGER_RE = re.compile(
+    r"'[^']*(?:--|/\*|;|\b(?:or|and|union|select|drop|insert|update|delete|exec|cast|convert|having|group|order)\b)"
+    r"|--|/\*",
+    re.IGNORECASE
+)
 
 def is_allowed_image(filename: str) -> bool:
     if not filename or "." not in filename:
@@ -1589,46 +1598,47 @@ def login():
 
         insecure_sql = f"SELECT * FROM users WHERE username='{username}' AND password_hash='{password}'"
 
+        # ML detekcija na svakom loginu — RF (nadzirano) + IF (nenadzirano)
+        ml_result = ml_detect(insecure_sql)
+        if ml_result["detected"]:
+            try:
+                log_security_event(
+                    f"ML_SQLI_DETECTED (RF={ml_result['rf_pred']}, RF_proba={ml_result['rf_proba']}, IF={ml_result['if_pred']}, IF_score={ml_result['if_score']})",
+                    username,
+                    insecure_sql
+                )
+            except Exception:
+                pass
+            return render_template("blocked.html", details=ml_result), 403
+
+        # Pokušaj ranjivog SQL-a; greška (npr. malformiran string zbog ' u lozinki)
+        # NE smije ubiti login — pravimo fallback na siguran hash check ispod.
+        row = None
         cur = db_cursor()
         try:
             cur.execute(insecure_sql)
             row = cur.fetchone()
-        except Exception as e:
-            flash(f"Database error: {str(e)}")
-            return redirect(url_for("login"), code=303)
+        except Exception:
+            row = None
         finally:
             try:
                 cur.close()
-            except:
+            except Exception:
                 pass
 
         if row:
-            try:  # ← KRITIČNO: Wrap u try-except
-                user_id = int(row.get("id", 0))
-                if user_id <= 0:
-                    raise ValueError("Invalid user ID")
-                
-                username_val = row.get("username")
-                password_hash_val = row.get("password_hash")
-                
-                if not username_val or not password_hash_val:
-                    raise ValueError("Missing user data")
-                
-                user = User(user_id, username_val, password_hash_val, row.get("is_admin", 0))
-                login_user(user, remember=True)
-                
-                if looks_like_sqli_tautology(username) or looks_like_sqli_tautology(password):
-                    try: 
-                        log_security_event("SQL_INJECTION_ATTEMPT", username, password)
-                    except Exception:
-                        pass
+            username_val = row.get("username") or ""
+            password_hash_val = row.get("password_hash") or ""
+            try:
+                user_id = int(row.get("id") or 0)
+            except (ValueError, TypeError):
+                user_id = 0
 
-                flash("Logged in.")
-                return redirect(url_for("products"), code=303)
-                
-            except (ValueError, TypeError, KeyError) as e:
-                flash("Login error - invalid data")
-                return redirect(url_for("login"), code=303)
+            user = User(user_id, username_val, password_hash_val, row.get("is_admin", 0))
+            login_user(user, remember=True)
+
+            flash(f"Welcome, {username_val}!")
+            return redirect(url_for("products"), code=303)
 
         # Fallback za normalne korisnike
         row = fetch_user_by_username(username)
@@ -1639,8 +1649,7 @@ def login():
                 flash("Logged in.")
                 return redirect(url_for("products"), code=303)
         
-        flash("Invalid credentials.")
-        return redirect(url_for("login"), code=303)
+        return render_template("login.html", form=form, login_error=f"Invalid credentials for {username}.")
 
     return render_template("login.html", form=form)
 
