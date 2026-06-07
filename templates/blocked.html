@@ -10,8 +10,10 @@
   {% if details %}
   <div class="blocked-details">
     <strong>Detekcija:</strong><br>
-    RF model: {{ details.rf_pred }} (vjerojatnost: {{ "%.1f"|format(details.rf_proba * 100) }}%)<br>
-    IF model: {{ details.if_pred }} (vjerojatnost: {{ "%.1f"|format(details.if_proba * 100) }}%)
+    RF model: {{ details.rf_pred if details.rf_pred is not none else '—' }}
+    {% if details.rf_proba is not none %}(vjerojatnost: {{ "%.1f"|format(details.rf_proba * 100) }}%){% endif %}<br>
+    IF model: {{ details.if_pred if details.if_pred is not none else '—' }}
+    {% if details.if_proba is not none %}(vjerojatnost: {{ "%.1f"|format(details.if_proba * 100) }}%){% endif %}
   </div>
   {% endif %}
   <a href="{{ url_for('login') }}" class="blocked-btn">Povratak na login</a>

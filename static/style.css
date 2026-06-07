@@ -985,6 +985,62 @@ body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; marg
     cursor:pointer;
   }
   .pp-auth__btn:hover{ opacity: .95; }
+
+  .pp-ml-mode{
+    margin-top: 7px;
+    overflow: hidden;
+  }
+  .pp-ml-mode__summary{
+    padding: 6px 0;
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: #888;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    user-select: none;
+  }
+  .pp-ml-mode__summary::-webkit-details-marker{ display: none; }
+  .pp-ml-mode__summary::after{
+    content: "›";
+    font-size: 1rem;
+    transition: transform .2s;
+    transform: rotate(90deg);
+  }
+  .pp-ml-mode[open] .pp-ml-mode__summary::after{ transform: rotate(-90deg); }
+  .pp-ml-mode__options{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    padding: 0 10px 10px;
+    margin-top: 12px;
+  }
+  .pp-ml-mode__opt{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    font-size: .82rem;
+    color: #444;
+    cursor: pointer;
+    padding: 7px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(0,0,0,.1);
+    background: #fff;
+    transition: background .15s, border-color .15s;
+    text-align: center;
+  }
+  .pp-ml-mode__opt:has(input:checked){
+    background: #0f1115;
+    color: #fff;
+    border-color: #0f1115;
+  }
+  .pp-ml-mode__opt input{ display: none; }
   
   .pp-auth__divider{
     display:flex;

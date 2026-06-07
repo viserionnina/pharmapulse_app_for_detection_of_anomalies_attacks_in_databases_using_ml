@@ -1598,8 +1598,11 @@ def login():
 
         insecure_sql = f"SELECT * FROM users WHERE username='{username}' AND password_hash='{password}'"
 
-        # ML detekcija na svakom loginu — RF (nadzirano) + IF (nenadzirano)
-        ml_result = ml_detect(insecure_sql)
+        ml_mode = request.form.get("ml_mode", "both")
+        if ml_mode not in ("none", "if", "rf", "both"):
+            ml_mode = "both"
+
+        ml_result = ml_detect(insecure_sql, mode=ml_mode)
         if ml_result["detected"]:
             try:
                 log_security_event(

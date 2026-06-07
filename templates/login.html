@@ -76,6 +76,24 @@
 
  
           <button type="submit" class="pp-auth__btn">Login</button>
+
+          <details class="pp-ml-mode">
+            <summary class="pp-ml-mode__summary"></summary>
+            <div class="pp-ml-mode__options">
+              <label class="pp-ml-mode__opt">
+                <input type="radio" name="ml_mode" value="none"> Bez detekcije
+              </label>
+              <label class="pp-ml-mode__opt">
+                <input type="radio" name="ml_mode" value="if"> Samo IF
+              </label>
+              <label class="pp-ml-mode__opt">
+                <input type="radio" name="ml_mode" value="rf"> Samo RF
+              </label>
+              <label class="pp-ml-mode__opt">
+                <input type="radio" name="ml_mode" value="both" checked> RF + IF
+              </label>
+            </div>
+          </details>
         </form>
         {% if login_error %}
           <p class="pp-field__error" style="margin-top: 12px">{{ login_error }}</p>
@@ -87,13 +105,31 @@
 document.addEventListener("DOMContentLoaded", () => {
   const toggle = document.querySelector("[data-pp-toggle]");
   const pass = document.querySelector("#pp-password");
-  if (!toggle || !pass) return;
+  if (toggle && pass) {
+    toggle.addEventListener("click", () => {
+      const isHidden = pass.getAttribute("type") === "password";
+      pass.setAttribute("type", isHidden ? "text" : "password");
+      toggle.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
+      toggle.classList.toggle("is-on", isHidden);
+    });
+  }
 
-  toggle.addEventListener("click", () => {
-    const isHidden = pass.getAttribute("type") === "password";
-    pass.setAttribute("type", isHidden ? "text" : "password");
-    toggle.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
-    toggle.classList.toggle("is-on", isHidden);
+  // persist ml_mode i open/closed stanje
+  const details = document.querySelector(".pp-ml-mode");
+  const radios = document.querySelectorAll("input[name='ml_mode']");
+
+  const savedMode = localStorage.getItem("pp_ml_mode") || "both";
+  const savedOpen = localStorage.getItem("pp_ml_open") === "true";
+
+  radios.forEach(r => { if (r.value === savedMode) r.checked = true; });
+  if (savedOpen) details.setAttribute("open", "");
+
+  radios.forEach(r => {
+    r.addEventListener("change", () => localStorage.setItem("pp_ml_mode", r.value));
+  });
+
+  details.addEventListener("toggle", () => {
+    localStorage.setItem("pp_ml_open", details.open);
   });
 });
 </script>
