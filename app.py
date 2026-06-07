@@ -30,6 +30,7 @@ from werkzeug.utils import secure_filename
 from flask_wtf.file import FileField, FileAllowed
 import uuid
 from ml.detector import detect as ml_detect
+IP_BLOCK_SECONDS = 10
 
 # --- App Setup ---
 app = Flask(__name__)
@@ -46,8 +47,30 @@ app.config["MYSQL_CURSORCLASS"] = "DictCursor"
 
 mysql = MySQL(app)
 login_manager = LoginManager(app)
+
+@app.before_request
+def check_blocked_ip():
+    if request.path.startswith("/static/"):
+        return
+    try:
+        cur = db_cursor()
+        cur.execute("""
+            SELECT 1 FROM security_events
+            WHERE ip_address=%s AND blocked_until > NOW()
+            LIMIT 1
+        """, (request.remote_addr,))
+        # S indexom na (ip_address, blocked_until) MySQL vrlo brzo pronađe postoji li zapis za tu IP adresu i je li blok još uvijek aktivan.
+        # Umjesto milijun redova, MySQL skače direktno na taj IP u O(log n) vremenu, 
+        # a onda unutar tog grupe još filtrira po blocked_until > NOW(). 
+        # Praktički konstantno vrijeme bez obzira na veličinu tablice.
+
+        if cur.fetchone():
+            return render_template("blocked.html", details=None, remaining=None), 403
+    except Exception:
+        pass
+        
 login_manager.login_view = "login"
-app.config["WTF_CSRF_ENABLED"] = False  # SAMO ZA DEMO
+app.config["WTF_CSRF_ENABLED"] = False 
 csrf = CSRFProtect(app)
 
 # Uploads (admin product images)
@@ -331,25 +354,17 @@ class CheckoutForm(FlaskForm):
 
 
 # --- Detektiranje SQLi taulogije ---
-SQLI_TAUTOLOGY_PATTERNS = [
-    r"""(?i)'\s*or\s*'1'\s*=\s*'1""",
-    r"""(?i)'\s*or\s*1\s*=\s*1""",
-    r"""(?i)'\s*or\s*'x'\s*=\s*'x""",
-    r"""(?i)'\s*or\s*'a'\s*=\s*'a""",
-    r"""(?i)'\s*or\s*exists\s*\(\s*select""",
-    r"""(?i)\bor\b\s*1\s*=\s*1""",
-    r"""(?i)\bor\b\s*'1'\s*=\s*'1'""",
-    r"""(?i)'\s*--""",
-    r"""(?i)'\s"""
-]
-
-# Trigger za ML: ' praćen SQL operatorom/terminatorom = pravi injection signal.
-# Sama trailing ' (npr. "password'") nije napad i ne aktivira ML.
-_SQLI_TRIGGER_RE = re.compile(
-    r"'[^']*(?:--|/\*|;|\b(?:or|and|union|select|drop|insert|update|delete|exec|cast|convert|having|group|order)\b)"
-    r"|--|/\*",
-    re.IGNORECASE
-)
+# SQLI_TAUTOLOGY_PATTERNS = [
+#     r"""(?i)'\s*or\s*'1'\s*=\s*'1""",
+#     r"""(?i)'\s*or\s*1\s*=\s*1""",
+#     r"""(?i)'\s*or\s*'x'\s*=\s*'x""",
+#     r"""(?i)'\s*or\s*'a'\s*=\s*'a""",
+#     r"""(?i)'\s*or\s*exists\s*\(\s*select""",
+#     r"""(?i)\bor\b\s*1\s*=\s*1""",
+#     r"""(?i)\bor\b\s*'1'\s*=\s*'1'""",
+#     r"""(?i)'\s*--""",
+#     r"""(?i)'\s"""
+# ]
 
 def is_allowed_image(filename: str) -> bool:
     if not filename or "." not in filename:
@@ -412,8 +427,8 @@ def admin_required(view):
         return view(*args, **kwargs)
     return wrapped
 
-def looks_like_sqli_tautology(s: str) -> bool:
-    return any(re.search(p, s or "") for p in SQLI_TAUTOLOGY_PATTERNS)
+# def looks_like_sqli_tautology(s: str) -> bool:
+#     return any(re.search(p, s or "") for p in SQLI_TAUTOLOGY_PATTERNS)
 
 def admin_stats():
     cur = db_cursor()
@@ -1060,18 +1075,16 @@ def fetch_orders(user_id: int) -> List[OrderView]:
 
     return orders
 
-def log_security_event(event_type, username, payload):
+def log_security_event(event_type, username, payload, block_seconds=0):
     cur = db_cursor()
     cur.execute("""
         INSERT INTO security_events
-        (event_type, username_attempted, payload, ip_address, user_agent)
-        VALUES (%s, %s, %s, %s, %s)
+        (event_type, username_attempted, payload, ip_address, user_agent, blocked_until)
+        VALUES (%s, %s, %s, %s, %s, IF(%s > 0, DATE_ADD(NOW(), INTERVAL %s SECOND), NULL))
     """, (
-        event_type,
-        username,
-        payload,
-        request.remote_addr,
-        request.headers.get("User-Agent")
+        event_type, username, payload,
+        request.remote_addr, request.headers.get("User-Agent"),
+        block_seconds, block_seconds,
     ))
     mysql.connection.commit()
 
@@ -1608,11 +1621,12 @@ def login():
                 log_security_event(
                     f"ML_SQLI_DETECTED (RF={ml_result['rf_pred']}, RF_proba={ml_result['rf_proba']}, IF={ml_result['if_pred']}, IF_score={ml_result['if_score']})",
                     username,
-                    insecure_sql
+                    password,
+                    block_seconds=IP_BLOCK_SECONDS
                 )
             except Exception:
                 pass
-            return render_template("blocked.html", details=ml_result), 403
+            return render_template("blocked.html", details=ml_result, remaining=IP_BLOCK_SECONDS), 403
 
         # Pokušaj ranjivog SQL-a; greška (npr. malformiran string zbog ' u lozinki)
         # NE smije ubiti login — pravimo fallback na siguran hash check ispod.
