@@ -8,7 +8,7 @@ PharmaPulse is a demo pharmacy web application used as an environment for resear
 
 ## Technologies
 
-- **Backend:** Python, Flask
+- **Backend:** Python 3.9, Flask
 - **Database:** MySQL
 - **Machine Learning:** scikit-learn (Random Forest, Isolation Forest)
 - **Frontend:** HTML, CSS, JavaScript, Jinja2
@@ -17,7 +17,7 @@ PharmaPulse is a demo pharmacy web application used as an environment for resear
 
 ### Prerequisites
 - Python 3.9+
-- MySQL server
+- MySQL server (or Docker)
 
 ### Datasets
 ```bash
@@ -88,7 +88,7 @@ The app will be available at `http://localhost:5001`. MySQL runs inside Docker a
 pharmapulse_app/
 ├── db/  
 ├── docker/  
-├── ml/                     # Folder for ml training
+├── ml/                         # Folder for ml training
 │   ├── datasets/
 │   │   ├── models/
 │   │   │   ├── DS1/
@@ -97,7 +97,7 @@ pharmapulse_app/
 │   │   │   ├── DS4/
 │   │   │   ├── DS5/
 │   │   │   └── DS6/
-│   │   └── dataset_clean.csv     # Prepared dataset for ML training
+│   │   └── dataset_clean.csv   # Prepared dataset for ML training
 │   ├── __init__.py
 │   ├── train.py            # ML training
 │   ├── detector.py         # ML detection
