@@ -43,6 +43,7 @@
           </div>
           {% if form.username.errors %}
             <div class="pp-field__error">{{ form.username.errors[0] }}</div>
+            <script>console.error("[PharmaPulse] Username error: {{ form.username.errors[0] }}");</script>
           {% endif %}
 
           <!-- PASSWORD -->
@@ -72,6 +73,7 @@
           </div>
           {% if form.password.errors %}
             <div class="pp-field__error">{{ form.password.errors[0] }}</div>
+            <script>console.error("[PharmaPulse] Password error: {{ form.password.errors[0] }}");</script>
           {% endif %}
 
  
@@ -97,6 +99,7 @@
         </form>
         {% if login_error %}
           <p class="pp-field__error" style="margin-top: 12px">{{ login_error }}</p>
+          <script>console.error("[PharmaPulse] {{ login_error }}");</script>
         {% endif %}
 
     </section>
