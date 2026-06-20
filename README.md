@@ -86,6 +86,7 @@ The app will be available at `http://localhost:5001`. MySQL runs inside Docker a
 
 ```
 pharmapulse_app/
+├── .github/workflows/
 ├── db/  
 ├── docker/  
 ├── ml/                         # Folder for ml training
