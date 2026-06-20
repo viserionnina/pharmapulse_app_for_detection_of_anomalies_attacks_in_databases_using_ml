@@ -1631,12 +1631,14 @@ def login():
         # Pokušaj ranjivog SQL-a; greška (npr. malformiran string zbog ' u lozinki)
         # NE smije ubiti login — pravimo fallback na siguran hash check ispod.
         row = None
+        db_error = None
         cur = db_cursor()
         try:
             cur.execute(insecure_sql)
             row = cur.fetchone()
-        except Exception:
+        except Exception as e:
             row = None
+            db_error = str(e)
         finally:
             try:
                 cur.close()
@@ -1666,6 +1668,8 @@ def login():
                 flash("Logged in.")
                 return redirect(url_for("products"), code=303)
         
+        if db_error and ml_mode == "none":
+            return render_template("login.html", form=form, login_error=f"Database error: {db_error}")
         return render_template("login.html", form=form, login_error=f"Invalid credentials for {username}.")
 
     return render_template("login.html", form=form)
