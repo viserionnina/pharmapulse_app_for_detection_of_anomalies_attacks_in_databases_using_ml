@@ -34,14 +34,14 @@ IP_BLOCK_SECONDS = 10
 
 # --- App Setup ---
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-only-change-me")
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "")
 app.config["REMEMBER_COOKIE_DURATION"] = timedelta(days=7)
 
 # --- MySQL config ---
-app.config["MYSQL_HOST"] = os.environ.get("MYSQL_HOST", "localhost")
-app.config["MYSQL_USER"] = os.environ.get("MYSQL_USER", "root")
-app.config["MYSQL_PASSWORD"] = os.environ.get("MYSQL_PASSWORD", "00000000")
-app.config["MYSQL_DB"] = os.environ.get("MYSQL_DB", "pharmapulse")
+app.config["MYSQL_HOST"] = os.environ.get("MYSQL_HOST", "")
+app.config["MYSQL_USER"] = os.environ.get("MYSQL_USER", "")
+app.config["MYSQL_PASSWORD"] = os.environ.get("MYSQL_PASSWORD", "")
+app.config["MYSQL_DB"] = os.environ.get("MYSQL_DB", "")
 app.config["MYSQL_CURSORCLASS"] = "DictCursor"
 # app.config["MYSQL_CLIENT_FLAG"] = "CLIENT.MULTI_STATEMENTS"
 
@@ -1473,7 +1473,6 @@ def register():
         return redirect(url_for("products"), code=303)
 
     return render_template("register.html", form=form)
-
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
