@@ -23,9 +23,6 @@ PharmaPulse is a demo pharmacy web application used as an environment for resear
 ```bash
 Quetel, G., Pautet, L., Alata, E., Robert, T., & Gimenez, P.-F. (2025). Superviz25-SQL: SQL Injection Detection Dataset [Data set]. Zenodo. https://doi.org/10.5281/zenodo.17086037
 ```
-```bash
-(OPTIONAL GENERATED DATASET) ml/datasets/generate_login_dataset.py
-```
 
 ### Steps
 
@@ -57,45 +54,68 @@ SECRET_KEY=your-secret-key
 
 5. Import the database:
 ```bash
-mysql -u root -p pharmapulse < pharmapulse_base.sql
+mysql -u root -p pharmapulse < db/pharmapulse_base.sql
 ```
 
-7. (OPTIONAL) Run the generated dataset:
-```bash
-python3 ml/datasets/generate_login_dataset.py
-```
-
-8. Run ml training:
+6. Run ml training:
 ```bash
 python3 ml/train.py      
 ```
 
-9. Run the application:
+7. Run the application:
 ```bash
 python3 app.py
 ```
 
-The app will be available at `http://127.0.0.1:5000`
+The app will be available at `http://127.0.0.1:5001`
+
+## Docker
+
+Alternatively, run the application using Docker (no local MySQL required):
+
+```bash
+cd docker
+docker-compose up --build
+```
+
+The app will be available at `http://localhost:5001`. MySQL runs inside Docker and is automatically initialized with the database schema and seed data from `db/pharmapulse_base.sql`.
+
+> **Note:** Create a `.env` file in the project root before running Docker (same as step 4 above).
 
 ## Project Structure
 
 ```
 pharmapulse_app/
+├── db/  
+├── docker/  
 ├── ml/                     # Folder for ml training
-│   ├── dataset/
-│       ├── model/
-│       ├── dataset_clean.csv
-│       ├── dataset_login_generated.csv
-│       └── generate_login_dataset.py
+│   ├── datasets/
+│   │   ├── models/
+│   │   │   ├── DS1/
+│   │   │   ├── DS2/
+│   │   │   ├── DS3/
+│   │   │   ├── DS4/
+│   │   │   ├── DS5/
+│   │   │   └── DS6/
+│   │   └── dataset_clean.csv     # Prepared dataset for ML training
 │   ├── __init__.py
 │   ├── train.py            # ML training
+│   ├── detector.py         # ML detection
+│   ├── if_features.py      # Isolation Forest SQL keyword features
 │   └── plots/
+│       ├── DS1/
+│       ├── DS2/
+│       ├── DS3/
+│       ├── DS4/
+│       ├── DS5/
+│       └── DS6/
+├── static/                 # CSS, JS, images
+├── templates/              # HTML templates
 ├── app.py                  # Main Flask application
 ├── pharmapulse_base.sql    # Database schema and seed data
 ├── requirements.txt        # Python dependencies
 ├── .env                    # Local environment variables (not in repo)
-├── static/                 # CSS, JS, images
-└── templates/              # HTML templates
+└── LICENSE                 # MIT License
 ```
 
 ## Author

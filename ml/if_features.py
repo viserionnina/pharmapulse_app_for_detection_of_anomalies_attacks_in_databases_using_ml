@@ -30,7 +30,7 @@ SQL_KEYWORDS = [
     "substr(", "mid(",
 ]
 
-#double hyphen -> --
+# double hyphen -> --
 # As long as injected SQL code is syntactically correct, 
 # tampering can't be detected programmatically. 
 
@@ -82,7 +82,7 @@ def keyword_features(queries):  #prima listu SQL upita kao stringove
         n_special = sum(1 for c in q if not c.isalnum() and c != " ") #broj specijalnih znakova (ne alfanumeričkih i ne razmaka), SQLi upiti imaju znatno više specijalnih znakova od normalnih upita
 
         # Popunjavanje feature matrice dodatnim numeričkim feature-ima, normalizirano na [0,1] ili kao flag
-        mat[i, nb_keywords] = min(n_quotes,  20) / 20.0                 # apostrofi
+        mat[i, nb_keywords] = min(n_quotes,  20) / 20.0                 # apostrofi '
         mat[i, nb_keywords + 1] = min(n_equals,  20) / 20.0             # =
         mat[i, nb_keywords + 2] = min(n_semi,    10) / 10.0             # ;
         mat[i, nb_keywords + 3] = min(n_open,    10) / 10.0             # (
@@ -90,18 +90,18 @@ def keyword_features(queries):  #prima listu SQL upita kao stringove
         mat[i, nb_keywords + 5] = min(n_hash,    10) / 10.0             # #
         mat[i, nb_keywords + 6] = min(q.count("`"), 10) / 10.0          # backtick
         mat[i, nb_keywords + 7] = sum(c.isdigit() for c in q) / length  # gustoća znamenki
-        mat[i, nb_keywords + 8] = min(n_special / length, 1.0)          # gustoća spec. znakova (3x viša u SQLi)
-        mat[i, nb_keywords + 9] = min(length, 2000) / 2000.0            # duljina (SQLi 2.4x duži)
-        mat[i, nb_keywords + 10] = float(length > 300)                  # flag: jako dugi upit (SQLi avg=418)
+        mat[i, nb_keywords + 8] = min(n_special / length, 1.0)          # gustoća spec. znakova 
+        mat[i, nb_keywords + 9] = min(length, 2000) / 2000.0            # duljina 
+        mat[i, nb_keywords + 10] = float(length > 300)                  # flag: jako dugi upit 
         mat[i, nb_keywords + 11] = min(q.count(","), 20) / 20.0         # zarezi
-        mat[i, nb_keywords + 12] = n_quotes % 2                         # neparni apostrofi (21x u SQLi)
-        mat[i, nb_keywords + 13] = min(n_dash, 10) / 10.0               # -- komentari (5127x u SQLi)
-        mat[i, nb_keywords + 14] = min(q.count("/*"), 10) / 10.0        # /* komentari (9572x u SQLi)
-        mat[i, nb_keywords + 15] = min(q.count("0x"), 10) / 10.0        # 0x hex (862x u SQLi)
+        mat[i, nb_keywords + 12] = n_quotes % 2                         # neparni apostrofi 
+        mat[i, nb_keywords + 13] = min(n_dash, 10) / 10.0               # -- komentari 
+        mat[i, nb_keywords + 14] = min(q.count("/*"), 10) / 10.0        # /* komentari 
+        mat[i, nb_keywords + 15] = min(q.count("0x"), 10) / 10.0        # 0x hex 
         mat[i, nb_keywords + 16] = min(abs(n_open - n_close), 5) / 5.0  # nebalansirane zagrade
         mat[i, nb_keywords + 17] = min(n_dquotes, 10) / 10.0            # dvostruki navodnici
         mat[i, nb_keywords + 18] = min(q.count("\\x") + q.count("\\u"), 10) / 10.0  # hex/unicode escape
-        mat[i, nb_keywords + 19] = float("1=1" in q or "a=a" in q or "'1'='1'" in q or "1 = 1" in q)  # identity (49x)
+        mat[i, nb_keywords + 19] = float("1=1" in q or "a=a" in q or "'1'='1'" in q or "1 = 1" in q)  # provjerava da li postoji true uvjet (tautologija) koji je čest u SQLi napadima
         mat[i, nb_keywords + 20] = min(q.count("!=") + q.count("<=") + q.count(">="), 10) / 10.0 # broji koliko puta relacijski operator poput >=, se pojavljuju
         mat[i, nb_keywords + 21] = min(n_quotes / length * 50, 1.0)      # gustoća apostrofa po duljini
         mat[i, nb_keywords + 22] = float(("select" in q or "union" in q) and ("--" in q or "#" in q or "/*" in q))        # SQL + komentar (UNION/comment injekcija)

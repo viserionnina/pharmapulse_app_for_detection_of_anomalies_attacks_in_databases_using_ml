@@ -1,0 +1,9 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+.env
+.git/
+ml/datasets/dataset_clean.csv
+sqlmap_rezultati*.txt
+test

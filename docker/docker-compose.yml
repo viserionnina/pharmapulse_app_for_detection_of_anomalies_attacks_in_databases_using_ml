@@ -1,0 +1,35 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: pharmapulse_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DB}
+    ports:
+      - "3307:3306"
+    volumes:
+      - pharmapulse_db_data:/var/lib/mysql
+      - ../db/pharmapulse_base.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: ..
+    container_name: pharmapulse_app
+    restart: always
+    ports:
+      - "5001:5001"
+    env_file:
+      - ../.env
+    environment:
+      MYSQL_HOST: db
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pharmapulse_db_data:
