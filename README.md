@@ -98,7 +98,8 @@ pharmapulse_app/
 │   │   │   ├── DS4/
 │   │   │   ├── DS5/
 │   │   │   └── DS6/
-│   │   └── dataset_clean.csv   # Prepared dataset for ML training
+│   │   ├── Superviz25_SQL_dataset.csv           # Original dataset
+│   │   └── Superviz25_SQL_dataset_cleaned.csv   # Prepared dataset for ML training
 │   ├── __init__.py
 │   ├── train.py            # ML training
 │   ├── detector.py         # ML detection

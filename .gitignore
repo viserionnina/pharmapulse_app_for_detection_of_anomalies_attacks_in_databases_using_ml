@@ -14,6 +14,6 @@ __pycache__/
 #Superviz25-SQL: SQL Injection Detection Dataset [Data set]. 
 #Zenodo. https://doi.org/10.5281/zenodo.17086037
 
-# Reproducibilni: pokrenuti generate_login_dataset.py + train.py
-ml/datasets/dataset_clean.csv
+ml/datasets/Superviz25_SQL_dataset_cleaned.csv
+ml/datasets/Superviz25_SQL_dataset.csv
 ml/datasets/models/
