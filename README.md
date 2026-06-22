@@ -6,6 +6,10 @@ Final thesis project — The aim of the work is to implement a system for detect
 
 PharmaPulse is a demo pharmacy web application used as an environment for researching database security attacks, with a focus on SQL injection. The system uses machine learning (Random Forest and Isolation Forest) to classify and detect malicious SQL queries in real time.
 
+## Login and detection process
+<img width="3495" height="4363" alt="login_proces" src="https://github.com/user-attachments/assets/fb4243e6-5521-49c1-996a-f2690ba9c01a" />
+
+
 ## Tech Stack
 
 - **Backend:** Python 3.9, Flask
