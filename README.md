@@ -7,6 +7,11 @@ Final thesis project — The aim of the work is to implement a system for detect
 PharmaPulse is a demo pharmacy web application used as an environment for researching database security attacks, with a focus on SQL injection. The system uses machine learning (Random Forest and Isolation Forest) to classify and detect malicious SQL queries in real time.
 
 ## Login and detection process
+
+The login route is **intentionally vulnerable** to SQL injection (raw string-built query, no parameterization), this is the attack surface the ML detection layer is built to protect. 
+
+Before the vulnerable query ever reaches the database, the selected detection mode (`none`/`if`/`rf`/`both`) evaluates the query; if flagged, the request is blocked and logged before execution. Note that a `row != None` result from the vulnerable query is only possible through a successful SQL injection bypass — legitimate logins never match here, since passwords are stored hashed and can never equal the raw value compared in the vulnerable query, so they only succeed through the safe fallback path shown on the right.
+
 <img width="3495" height="4363" alt="login_proces" src="https://github.com/user-attachments/assets/fb4243e6-5521-49c1-996a-f2690ba9c01a" />
 
 
