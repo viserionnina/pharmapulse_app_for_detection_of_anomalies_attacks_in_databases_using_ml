@@ -31,8 +31,6 @@ SQL_KEYWORDS = [
 ]
 
 # double hyphen -> --
-# As long as injected SQL code is syntactically correct, 
-# tampering can't be detected programmatically. 
 
 #Analiza dataseta:
 
@@ -51,7 +49,6 @@ SQL_KEYWORDS = [
 #duljina (avg chars)            170.9960   418.4098         2.4x
 #apostrofi                        0.9853     1.5711         1.6x
 #točka-zarez ;                    0.5831     0.5253         0.9x
-#char(                            0.0000     0.0000         0.3x
 
 # Feature Engineering — pomaganje modelu da "shvati" domenu u kojoj radi
 def keyword_features(queries):  #prima listu SQL upita kao stringove
