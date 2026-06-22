@@ -1481,7 +1481,7 @@ def login():
 
     form = LoginForm()
     if form.validate_on_submit():
-        username = (form.username.data or "").strip()
+        username = (form.username.data or "")#.strip()
         password = form.password.data or ""
 
         insecure_sql = f"SELECT * FROM users WHERE username='{username}' AND password_hash='{password}'"
@@ -1511,6 +1511,9 @@ def login():
         try:
             cur.execute(insecure_sql)
             row = cur.fetchone()
+            while cur.nextset():
+                pass
+            mysql.connection.commit()
         except Exception as e:
             row = None
             db_error = str(e)
