@@ -35,12 +35,18 @@ os.makedirs(MODELS_DIR, exist_ok=True)
 start = time.time()
 
 print("Loading dataset...")
-df_main = pd.read_csv(os.path.join(DATASET_DIR, "dataset_clean.csv"), low_memory=False) #low_memory=False da se izbjegnu warningi o miješanju tipova u stupcima, iako to može povećati memorijsku potrošnju ali pouzdanije za veliki dataset
+df_main = pd.read_csv(os.path.join(DATASET_DIR, "Superviz25_SQL_dataset_cleaned.csv"), low_memory=False) #low_memory=False da se izbjegnu warningi o miješanju tipova u stupcima, iako to može povećati memorijsku potrošnju ali pouzdanije za veliki dataset
 print(f"Glavni dataset: {len(df_main):,} redova")
 
+# pool_size = pd.read_csv('ml/datasets/Superviz25_SQL_dataset_cleaned.csv', low_memory=False)
+# print(pool_size.groupby(['split', 'label']).size())
+# # test   0        3017390
+# #        1         336281
+# # train  0         335306
+
 # Supervised RF: svi legitimni (train split) + svi SQLi (test split)
-sql_legit_pool = df_main[(df_main["split"] == "train") & (df_main["label"] == 0)] # DS6
-sqli_pool  = df_main[(df_main["split"] == "test")  & (df_main["label"] == 1)] # DS6
+sql_legit_pool = df_main[(df_main["split"] == "train") & (df_main["label"] == 0)].sample(n=1000) #mjenjanje vel. uzoraka za svaki dataset za RF model - normalni
+sqli_pool  = df_main[(df_main["split"] == "test")  & (df_main["label"] == 1)].sample(n=1000) #mjenjanje vel. uzoraka za svaki dataset za RF model - maliciozni
 df_rf_supervised = pd.concat([sql_legit_pool, sqli_pool]).sample(frac=1, random_state=42).reset_index(drop=True) #spajamo u jedan dataset i miješamo redoslijed (shuffle) da ne bi model naučio da su prvi redovi legit, a zadnji SQLi
 
 X_rf_supervised, y_rf_supervised = df_rf_supervised["full_query"], df_rf_supervised["label"] #ulazni podaci i labele za nadzirano učenje RF modela
@@ -50,7 +56,7 @@ X_val, X_test, y_val, y_test = train_test_split(X_tmp, y_tmp, test_size=0.5, ran
 print(f"Supervised - Train: {len(X_train)} | Val: {len(X_val)} | Test: {len(X_test)}")
 print(f"Class distribution (train): {y_train.value_counts().to_dict()}")
 
-# IF: samo label=0 queriji iz train splita, BEZ labela — nenadzirano
+# IF train: samo label=0 queriji iz train splita, BEZ labela — nenadzirano
 X_if_train = X_train[y_train == 0]
 
 # IF test: 70% normal, 30% maliciozni (realističniji scenarij)
@@ -70,7 +76,7 @@ y_if_val  = df_if_val["label"]
 
 print(f"IF train: {len(X_if_train)} upita bez labela (nenadzirano)")
 print(f"IF test: {len(X_if_test)} ({(y_if_test==0).sum()} normal, {(y_if_test==1).sum()} napad)")
-print(f"IF val: {len(X_if_val)} (20/10 za threshold tuning)")
+print(f"IF val: {len(X_if_val)} (threshold tuning)")
 
 # ============================================================
 # 1. RANDOM FOREST (nadzirano učenje)
@@ -127,6 +133,15 @@ iso = IsolationForest(n_estimators=1000, contamination=0.15, random_state=42, ma
 iso.fit(kw_train_scaled)
 
 # Tune threshold — Youden's J na IF val setu (70/30, ista distribucija kao test)
+# Youden J - prag odrđuje granicu kojom klasificiramo anomaly scorove od isolation foresta
+# score < prag  →  anomalija (napad)
+# score >= prag →  normalno
+# Taj prag nije proizvoljan — pronađen je tako da se isproba 500 mogućih vrijednosti na validacijskom skupu, i odabere ona koja daje najbolji balans između:
+
+# TPR (koliko stvarnih napada uhvatimo)
+# TNR (koliko stvarno normalnih ostavimo na miru)
+# Formula J = TPR + TNR - 1 nagrađuje prag koji je dobar u oba aspekta istovremeno, ne samo u jednom.
+# Nakon što se taj optimalni prag jednom pronađe u treningu, spremi se u if_threshold.pkl i koristi se zatim trajno u produkciji (u detector.py) za svaki novi upit koji stigne — bez ponovnog računanja.
 val_scores = iso.decision_function(kw_if_val_scaled)
 best_thresh, best_j = 0.0, -1.0
 for thresh in np.linspace(val_scores.min(), val_scores.max(), 500):
@@ -138,6 +153,21 @@ for thresh in np.linspace(val_scores.min(), val_scores.max(), 500):
     if j > best_j:
         best_j, best_thresh = j, thresh
 print(f"Optimal threshold (IF val Youden J={best_j:.4f}): {best_thresh:.4f}")
+
+# While AUC–ROC tells us how good a model is overall, 
+# the Youden Index helps us decide where to set the threshold. 
+# Together, they form a complete and practical framework for evaluating classifiers.
+
+# The Youden index, also called Youden’s J statistic, 
+# is a summary measure used in binary classification/diagnostic testing to find the 
+# best threshold (cut-off) for deciding between two classes (e.g., disease vs. no disease).
+
+# Used for:
+# Medical diagnosis
+# Fraud detection
+# Defective product identification
+# Equipment failure prediction
+# Credit risk assessment
 
 test_scores = iso.decision_function(kw_test_scaled)
 iso_test_pred = (test_scores < best_thresh).astype(int)
@@ -168,6 +198,9 @@ with open(os.path.join(MODELS_DIR, "sql_keywords.pkl"), "wb") as f:
     pickle.dump(SQL_KEYWORDS, f)
 with open(os.path.join(MODELS_DIR, "if_threshold.pkl"), "wb") as f:
     pickle.dump(best_thresh, f)
+
+
+
 
 
 

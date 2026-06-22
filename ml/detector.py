@@ -36,9 +36,12 @@ def detect(sql_query: str, mode: str = "both") -> dict:
         kw = keyword_features([sql_query])
         kw_scaled = _scaler.transform(kw)
         if_score = float(_iso.decision_function(kw_scaled)[0])
-        if_pred = int(if_score < _if_threshold)
-        if_proba = float(1.0 / (1.0 + np.exp(if_score * 20.0)))
-
+        if_pred = int(if_score < _if_threshold) #-0.25 < -0.04? → True → 1 anomalija
+        if_proba = float(1.0 / (1.0 + np.exp(if_score * 20.0))) # sigmoid function za pretvorbu u postotak
+        # Faktor 20 odabran je empirijski, na temelju opaženog raspona anomaly scoreova koje Isolation Forest model proizvodi 
+        # (tipično između -0.3 i 0.15). Budući da je taj raspon uzakbez skaliranja vjerojatnosti su previše zgurane i zato množenjem
+        # s 20.0 dobivamo širi raspon i bolje razdvajanje vjerojatnosti između legitimnih i anomalnih upita.
+    
     if mode == "none":
         detected = False
     elif mode == "rf":
