@@ -82,6 +82,10 @@ The app will be available at `http://localhost:5001`. MySQL runs inside Docker a
 
 > **Note:** Create a `.env` file in the project root before running Docker (same as step 4 above).
 
+## Useful Resources
+
+For SQL injection payload examples useful for testing this application, see [PayloadsAllTheThings - MySQL Injection](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/SQL%20Injection/MySQL%20Injection.md).
+
 ## Project Structure
 
 ```
