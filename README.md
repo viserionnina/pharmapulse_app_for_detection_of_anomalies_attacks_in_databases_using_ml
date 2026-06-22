@@ -87,7 +87,7 @@ The app will be available at `http://localhost:5001`. MySQL runs inside Docker a
 ```
 pharmapulse_app/
 ├── .github/workflows/
-├── db/  
+├── db/                         # Database schema and seed data
 ├── docker/  
 ├── ml/                         # Folder for ml training
 │   ├── datasets/
@@ -114,9 +114,9 @@ pharmapulse_app/
 ├── static/                 # CSS, JS, images
 ├── templates/              # HTML templates
 ├── app.py                  # Main Flask application
-├── pharmapulse_base.sql    # Database schema and seed data
 ├── requirements.txt        # Python dependencies
-├── .env                    # Local environment variables (not in repo)
+├── .gitignore              # List of ignored folders/files
+├── README.md               # About project
 └── LICENSE                 # MIT License
 ```
 
