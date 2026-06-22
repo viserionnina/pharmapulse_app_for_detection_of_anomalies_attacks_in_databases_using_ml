@@ -10,26 +10,19 @@ from flask import Flask, render_template, redirect, url_for, request, flash, abo
 from flask_mysqldb import MySQL
 import MySQLdb.cursors
 
-from flask_login import (
-    LoginManager,
-    login_user,
-    logout_user,
-    login_required,
-    current_user,
-    UserMixin,
-)
+from flask_login import LoginManager,login_user,logout_user,login_required,current_user,UserMixin
 from flask_wtf import FlaskForm, CSRFProtect
 from wtforms import StringField, PasswordField, IntegerField
 from wtforms.validators import DataRequired, Length, NumberRange, Optional as Opt, InputRequired, Email
 from wtforms.fields import DateField
 from werkzeug.security import generate_password_hash, check_password_hash
-from jinja2 import DictLoader
 from functools import wraps
 #uploads
 from werkzeug.utils import secure_filename
 from flask_wtf.file import FileField, FileAllowed
 import uuid
-from ml.detector import detect as ml_detect
+
+from ml.detector import detect
 IP_BLOCK_SECONDS = 10
 
 # --- App Setup ---
@@ -81,7 +74,7 @@ ALLOWED_IMAGE_EXTS = {"png", "jpg", "jpeg", "webp", "gif", "svg"}
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 
-#ya cart
+#my cart
 @app.context_processor
 def inject_cart_count():
     c = 0
@@ -1490,7 +1483,7 @@ def login():
         if ml_mode not in ("none", "if", "rf", "both"):
             ml_mode = "both"
 
-        ml_result = ml_detect(insecure_sql, mode=ml_mode)
+        ml_result = detect(insecure_sql, mode=ml_mode)
         if ml_result["detected"]:
             try:
                 log_security_event(
