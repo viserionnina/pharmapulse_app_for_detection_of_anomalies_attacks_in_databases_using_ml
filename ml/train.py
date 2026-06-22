@@ -122,6 +122,7 @@ kw_if_train = keyword_features(X_if_train.tolist())
 kw_if_val   = keyword_features(X_if_val.tolist())
 kw_if_test  = keyword_features(X_if_test.tolist())
 
+#Normalizira podatke kako bi IF  model pravilno usporedio razl. značajke
 scaler = StandardScaler()
 kw_train_scaled = scaler.fit_transform(kw_if_train)
 kw_if_val_scaled = scaler.transform(kw_if_val)

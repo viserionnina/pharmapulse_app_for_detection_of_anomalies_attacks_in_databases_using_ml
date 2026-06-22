@@ -1502,11 +1502,11 @@ def login():
         db_error = None
         cur = db_cursor()
         try:
-            cur.execute(insecure_sql)
-            row = cur.fetchone()
-            while cur.nextset():
+            cur.execute(insecure_sql) #salje na server insecure_sql 
+            row = cur.fetchone() #dohvaca prvi red rez.
+            while cur.nextset(): #ako postoje više sve ih dovuci
                 pass
-            mysql.connection.commit()
+            mysql.connection.commit() #potvrđuje promjene DML naredbi
         except Exception as e:
             row = None
             db_error = str(e)
