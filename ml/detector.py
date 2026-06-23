@@ -29,7 +29,8 @@ def detect(sql_query: str, mode: str = "both") -> dict:
 
     if mode in ("rf", "both"):
         vec = _vectorizer.transform([sql_query])
-        rf_pred = int(_rf.predict(vec)[0])
+        rf_pred = int(_rf.predict(vec)[0])  #RF predviđa: 0 (legitimno) ili 1 (napad) — to je direktna odluka stabla-glasanja (majority vote svih 100 stabala u šumi).
+        #rf_pred je već binarna odluka na pragu 0.5, dok rf_proba je kontinuirana vrijednost (npr. 0.63, 0.97, 0.12...) iz koje je rf_pred izveden.
         rf_proba = float(_rf.predict_proba(vec)[0][1])
 
     if mode in ("if", "both"):
@@ -45,13 +46,17 @@ def detect(sql_query: str, mode: str = "both") -> dict:
     if mode == "none":
         detected = False
     elif mode == "rf":
-        detected = bool(rf_proba is not None and rf_proba >= 0.55)
+        detected = bool(rf_pred == 1 and rf_proba >= 0.70)
     elif mode == "if":
         detected = bool(if_pred == 1)
     else:  # both
-        rf_very_confident = rf_proba is not None and rf_proba >= 0.97
-        both_agree = rf_pred == 1 and if_pred == 1 and rf_proba >= 0.55
-        detected = bool(rf_very_confident) or bool(both_agree)
+        # Oba modela se slažu da je napad
+        both_agree = rf_pred == 1 and if_pred == 1
+        # RF kaže napad, IF se ne slaže — RF nadjačava samo ako je vrlo siguran
+        rf_overrides = rf_pred == 1 and if_pred == 0 and rf_proba is not None and rf_proba >= 0.70
+        # IF kaže anomalija, RF se ne slaže — IF nadjačava samo ako je vrlo siguran
+        if_overrides = rf_pred == 0 and if_pred == 1 and if_proba is not None and if_proba >= 0.80
+        detected = bool(both_agree) or bool(rf_overrides) or bool(if_overrides)
 
     return {
         "rf_pred": rf_pred,

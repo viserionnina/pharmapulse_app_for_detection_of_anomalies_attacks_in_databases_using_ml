@@ -30,26 +30,6 @@ SQL_KEYWORDS = [
     "substr(", "mid(",
 ]
 
-# double hyphen -> --
-
-#Analiza dataseta:
-
-#Feature                          Normal       SQLi  SQLi/Normal
-#--------------------------------------------------------------
-#komentar /*                      0.0000     0.9572      9572.0x
-#crtice --                        0.0000     0.6152      5127.3x
-#0x hex                           0.0006     0.6350       862.5x
-#information_schema               0.0007     0.4479       574.0x
-#sleep                            0.0000     0.0636       473.7x
-#1=1                              0.0000     0.0050        49.5x
-#neparni apostrofi                0.0063     0.1357        21.0x
-#null                             0.0612     0.5088         8.3x
-#union                            0.0922     0.4733         5.1x
-#specijalni znakovi (avg)        22.4248    73.8283         3.3x
-#duljina (avg chars)            170.9960   418.4098         2.4x
-#apostrofi                        0.9853     1.5711         1.6x
-#točka-zarez ;                    0.5831     0.5253         0.9x
-
 # Feature Engineering — pomaganje modelu da "shvati" domenu u kojoj radi
 def keyword_features(queries):  #prima listu SQL upita kao stringove
     q_lower = [q.lower() for q in queries] #pretvare sve upite u mala slova radi lakšeg pretraživanja ključnih riječi

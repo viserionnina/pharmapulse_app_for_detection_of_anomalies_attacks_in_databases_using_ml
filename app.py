@@ -154,14 +154,14 @@ class OrderView:
 
 # --- Auth user for Flask-Login ---
 class User(UserMixin):
-    def __init__(self, id: int, username: str, password_hash: str, is_admin: int = 0):
+    def __init__(self, id: int, username: str, password: str, is_admin: int = 0):
         self.id = id
         self.username = username
-        self.password_hash = password_hash
+        self.password = password
         self.is_admin = int(is_admin or 0)
 
     def check_password(self, pw: str) -> bool:
-        return check_password_hash(self.password_hash, pw)
+        return check_password_hash(self.password, pw)
 
 class ProfileForm(FlaskForm):
     full_name = StringField("Full name", validators=[Opt(), Length(max=120)])
@@ -228,12 +228,12 @@ def db_cursor():
 
 def fetch_user_by_id(user_id: int) -> Optional[dict]:
     cur = db_cursor()
-    cur.execute("SELECT id, username, password_hash, is_admin FROM users WHERE id=%s", (user_id,))
+    cur.execute("SELECT id, username, password, is_admin FROM users WHERE id=%s", (user_id,))
     return cur.fetchone()
 
 def fetch_user_by_username(username: str) -> Optional[dict]:
     cur = db_cursor()
-    cur.execute("SELECT id, username, password_hash, is_admin FROM users WHERE username=%s", (username,))
+    cur.execute("SELECT id, username, password, is_admin FROM users WHERE username=%s", (username,))
     return cur.fetchone()
 
 
@@ -319,7 +319,7 @@ def cart_count(user_id: int) -> int:
 def load_user(user_id):
     row = fetch_user_by_id(int(user_id))
     if row:
-        return User(row["id"], row["username"], row["password_hash"], row.get("is_admin", 0))
+        return User(row["id"], row["username"], row["password"], row.get("is_admin", 0))
     return None
 
 
@@ -1445,7 +1445,7 @@ def register():
         #####################
         pw_hash = generate_password_hash(password, method="pbkdf2:sha256")
         cur = db_cursor()
-        cur.execute("INSERT INTO users (username, password_hash) VALUES (%s, %s)", (username, pw_hash))
+        cur.execute("INSERT INTO users (username, password) VALUES (%s, %s)", (username, pw_hash))
         #####################
 
         mysql.connection.commit()
@@ -1461,7 +1461,7 @@ def register():
 
         # auto-login
         row = fetch_user_by_username(username)
-        login_user(User(row["id"], row["username"], row["password_hash"]))
+        login_user(User(row["id"], row["username"], row["password"]))
         flash("Welcome! Account created.")
         return redirect(url_for("products"), code=303)
 
@@ -1477,7 +1477,7 @@ def login():
         username = (form.username.data or "")#.strip()
         password = form.password.data or ""
 
-        insecure_sql = f"SELECT * FROM users WHERE username='{username}' AND password_hash='{password}'"
+        insecure_sql = f"SELECT * FROM users WHERE username='{username}' AND password='{password}'"
 
         ml_mode = request.form.get("ml_mode", "both")
         if ml_mode not in ("none", "if", "rf", "both"):
@@ -1518,13 +1518,13 @@ def login():
 
         if row:
             username_val = row.get("username") or ""
-            password_hash_val = row.get("password_hash") or ""
+            password_val = row.get("password") or ""
             try:
                 user_id = int(row.get("id") or 0)
             except (ValueError, TypeError):
                 user_id = 0
 
-            user = User(user_id, username_val, password_hash_val, row.get("is_admin", 0))
+            user = User(user_id, username_val, password_val, row.get("is_admin", 0))
             login_user(user, remember=True)
 
             flash(f"Welcome, {username_val}!")
@@ -1533,15 +1533,23 @@ def login():
         # Fallback za normalne korisnike
         row = fetch_user_by_username(username)
         if row:
-            user = User(row["id"], row["username"], row["password_hash"], row.get("is_admin", 0))
+            user = User(row["id"], row["username"], row["password"], row.get("is_admin", 0))
             if user.check_password(password):
                 login_user(user, remember=True)
-                flash("Logged in.")
+                flash(
+                    f"Logged in. (ML mode: {ml_mode}, RF={ml_result['rf_pred']} "
+                    f"proba={ml_result['rf_proba']}, IF={ml_result['if_pred']} "
+                    f"score={ml_result['if_score']})"
+                )
                 return redirect(url_for("products"), code=303)
         
+        ml_info = (
+            f"(ML mode: {ml_mode}, RF={ml_result['rf_pred']} proba={ml_result['rf_proba']}, "
+            f"IF={ml_result['if_pred']} score={ml_result['if_score']})"
+        )
         if db_error and ml_mode == "none":
             return render_template("login.html", form=form, login_error=f"Database error: {db_error}")
-        return render_template("login.html", form=form, login_error=f"Invalid credentials for {username}.")
+        return render_template("login.html", form=form, login_error=f"Invalid credentials for {username}. {ml_info}")
 
     return render_template("login.html", form=form)
 
