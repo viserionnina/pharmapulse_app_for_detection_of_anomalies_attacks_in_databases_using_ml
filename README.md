@@ -12,7 +12,7 @@ The login route is **intentionally vulnerable** to SQL injection (raw string-bui
 
 Before the vulnerable query ever reaches the database, the selected detection mode (`none`/`if`/`rf`/`both`) evaluates the query; if flagged, the request is blocked and logged before execution. Note that a `row != None` result from the vulnerable query is only possible through a successful SQL injection bypass — legitimate logins never match here, since passwords are stored hashed and can never equal the raw value compared in the vulnerable query, so they only succeed through the safe fallback path shown on the right.
 
-<img width="3495" height="4363" alt="login_proces" src="https://github.com/user-attachments/assets/fb4243e6-5521-49c1-996a-f2690ba9c01a" />
+![Alt tekst](./login_proces.png)
 
 
 ## Tech Stack
