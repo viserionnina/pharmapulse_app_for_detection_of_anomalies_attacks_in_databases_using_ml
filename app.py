@@ -1544,8 +1544,9 @@ def login():
                 return redirect(url_for("products"), code=303)
         
         ml_info = (
-            f"(ML mode: {ml_mode}, RF={ml_result['rf_pred']} proba={ml_result['rf_proba']}, "
-            f"IF={ml_result['if_pred']} score={ml_result['if_score']})"
+             f"(ML mode: {ml_mode} , "
+            f"RF: predikcija={ml_result['rf_pred']}, pouzdanost={ml_result['rf_proba']}%, "
+            f"IF: predikcija={ml_result['if_pred']}, pouzdanost={ml_result['if_proba']}%)"
         )
         if db_error and ml_mode == "none":
             return render_template("login.html", form=form, login_error=f"Database error: {db_error}")

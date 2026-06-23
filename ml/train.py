@@ -8,7 +8,7 @@ import scipy.sparse as sp
 import matplotlib
 matplotlib.use("Agg") #postavlja backend za renderiranje grafova bez potrebe za GUI (za server okruženje)
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D as _Axes3D  # noqa: F401
+from mpl_toolkits.mplot3d import Axes3D as _Axes3D 
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier, IsolationForest
@@ -20,8 +20,8 @@ import seaborn as sns
 
 from ml.if_features import SQL_KEYWORDS, keyword_features
 
-# mjanjamo ovdje za svaki dataset
-DS_NAME = "DS6"
+# mijenjanje imena za svaki dataset
+DS_NAME = "DS6_test_2"
 
 #kreiranje direktorija
 DATASET_DIR = os.path.join(os.path.dirname(__file__), "datasets")
@@ -45,8 +45,8 @@ print(f"Glavni dataset: {len(df_main):,} redova")
 # # train  0         335306
 
 # Supervised RF: svi legitimni (train split) + svi SQLi (test split)
-sql_legit_pool = df_main[(df_main["split"] == "train") & (df_main["label"] == 0)].sample(n=1000) #mjenjanje vel. uzoraka za svaki dataset za RF model - normalni
-sqli_pool  = df_main[(df_main["split"] == "test")  & (df_main["label"] == 1)].sample(n=1000) #mjenjanje vel. uzoraka za svaki dataset za RF model - maliciozni
+sql_legit_pool = df_main[(df_main["split"] == "train") & (df_main["label"] == 0)].sample(n=335306) #mjenjanje vel. uzoraka za svaki dataset za RF model - normalni
+sqli_pool  = df_main[(df_main["split"] == "test")  & (df_main["label"] == 1)].sample(n=336281) #mjenjanje vel. uzoraka za svaki dataset za RF model - maliciozni
 df_rf_supervised = pd.concat([sql_legit_pool, sqli_pool]).sample(frac=1, random_state=42).reset_index(drop=True) #spajamo u jedan dataset i miješamo redoslijed (shuffle) da ne bi model naučio da su prvi redovi legit, a zadnji SQLi
 
 X_rf_supervised, y_rf_supervised = df_rf_supervised["full_query"], df_rf_supervised["label"] #ulazni podaci i labele za nadzirano učenje RF modela
@@ -83,14 +83,22 @@ print(f"IF val: {len(X_if_val)} (threshold tuning)")
 # ============================================================
 # --- TF-IDF ---
 print("\nFitting TF-IDF vectorizer: ")
-vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 5), max_features=50000, sublinear_tf=True) # duži n-grami mogu bolje uhvatiti union select, drop table itd.
+vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 5), max_features=5000, sublinear_tf=True) # duži n-grami mogu bolje uhvatiti union select, drop table itd.
 X_train_vec = vectorizer.fit_transform(X_train)
 X_val_vec = vectorizer.transform(X_val)
 X_test_vec = vectorizer.transform(X_test)
 
 print("\n--- Random Forest ---")
 start_rf = time.time()
-rf = RandomForestClassifier(n_estimators=100, n_jobs=-1, random_state=42)
+rf = RandomForestClassifier(
+    n_estimators=100,
+    max_depth=None,          # ili npr. 50 ako želiš ograničiti
+    max_features="sqrt",     # default, ali eksplicitno
+    min_samples_leaf=1,      # default
+    class_weight="balanced", # uravnotežuje klase u slučaju neravnoteže (više normalnih nego napada)
+    n_jobs=-1,
+    random_state=42
+)
 rf.fit(X_train_vec, y_train)
 
 val_pred = rf.predict(X_val_vec)
@@ -137,12 +145,14 @@ iso.fit(kw_train_scaled)
 # Youden J - prag odrđuje granicu kojom klasificiramo anomaly scorove od isolation foresta
 # score < prag  →  anomalija (napad)
 # score >= prag →  normalno
-# Taj prag nije proizvoljan — pronađen je tako da se isproba 500 mogućih vrijednosti na validacijskom skupu, i odabere ona koja daje najbolji balans između:
+# Taj prag nije proizvoljan —> pronađen je tako da se isproba 500 mogućih vrijednosti na validacijskom skupu
+# i odabere onaj koji daje najbolji balans
 
 # TPR (koliko stvarnih napada uhvatimo)
 # TNR (koliko stvarno normalnih ostavimo na miru)
 # Formula J = TPR + TNR - 1 nagrađuje prag koji je dobar u oba aspekta istovremeno, ne samo u jednom.
-# Nakon što se taj optimalni prag jednom pronađe u treningu, spremi se u if_threshold.pkl i koristi se zatim trajno u produkciji (u detector.py) za svaki novi upit koji stigne — bez ponovnog računanja.
+# Nakon što se taj optimalni prag jednom pronađe u treningu, sprema se u if_threshold.pkl i 
+# koristi se zatim trajno u produkciji (u detector.py) za svaki novi upit koji stigne bez ponovnog računanja.
 val_scores = iso.decision_function(kw_if_val_scaled)
 best_thresh, best_j = 0.0, -1.0
 for thresh in np.linspace(val_scores.min(), val_scores.max(), 500):
@@ -150,25 +160,17 @@ for thresh in np.linspace(val_scores.min(), val_scores.max(), 500):
     tn, fp, fn, tp = confusion_matrix(y_if_val, preds, labels=[0, 1]).ravel()
     tpr = tp / (tp + fn) if (tp + fn) > 0 else 0.0
     tnr = tn / (tn + fp) if (tn + fp) > 0 else 0.0
-    j = tpr + tnr - 1 # Youden's J = 2 *Sensitivity + Specificity - 1
+    j = tpr + tnr - 1 # Youden's J =  Sensitivity + Specificity - 1
     if j > best_j:
         best_j, best_thresh = j, thresh
 print(f"Optimal threshold (IF val Youden J={best_j:.4f}): {best_thresh:.4f}")
 
-# While AUC–ROC tells us how good a model is overall, 
-# the Youden Index helps us decide where to set the threshold. 
-# Together, they form a complete and practical framework for evaluating classifiers.
-
-# The Youden index, also called Youden’s J statistic, 
-# is a summary measure used in binary classification/diagnostic testing to find the 
-# best threshold (cut-off) for deciding between two classes (e.g., disease vs. no disease).
-
-# Used for:
-# Medical diagnosis
-# Fraud detection
-# Defective product identification
-# Equipment failure prediction
-# Credit risk assessment
+# Koristi se za:
+# Medicinske dijagnoze
+# Otkrivanje prijevare
+# Identifikaciju neispravnih proizvoda
+# Predviđanje kvara opreme
+# Procjenu kreditnog rizika
 
 test_scores = iso.decision_function(kw_test_scaled)
 iso_test_pred = (test_scores < best_thresh).astype(int)
@@ -312,7 +314,7 @@ IF_FEATURE_NAMES = (
      "SELECT/UNION + komentar", "OR/AND + apostrofi + uvjet"]
 )
 
-# Korelacija svake IF featura s labelom na test setu (point-biserial ≈ pearson za binarni y)
+# Korelacija svake IF featura s labelom na test setu
 kw_test_unscaled = keyword_features(X_if_test.tolist())
 correlations = np.array([
     abs(np.corrcoef(kw_test_unscaled[:, j], np.array(y_if_test))[0, 1])
