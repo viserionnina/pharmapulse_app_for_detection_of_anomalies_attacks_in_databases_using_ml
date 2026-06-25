@@ -1490,7 +1490,7 @@ def login():
                     f"ML_SQLI_DETECTED (RF={ml_result['rf_pred']}, RF_proba={ml_result['rf_proba']}, IF={ml_result['if_pred']}, IF_score={ml_result['if_score']})",
                     username,
                     password,
-                    block_seconds=IP_BLOCK_SECONDS
+                    block_seconds=0 #IP_BLOCK_SECONDS
                 )
             except Exception:
                 pass
@@ -1536,17 +1536,21 @@ def login():
             user = User(row["id"], row["username"], row["password"], row.get("is_admin", 0))
             if user.check_password(password):
                 login_user(user, remember=True)
+                rf_conf = f"{ml_result['rf_proba'] * 100:.1f}%" if ml_result['rf_proba'] is not None else "—"
+                if_conf = f"{ml_result['if_proba'] * 100:.1f}%" if ml_result['if_proba'] is not None else "—"
                 flash(
-                    f"Logged in. (ML mode: {ml_mode}, RF={ml_result['rf_pred']} "
-                    f"proba={ml_result['rf_proba']}, IF={ml_result['if_pred']} "
-                    f"score={ml_result['if_score']})"
+                    f"Logged in. (ML mode: {ml_mode}, "
+                    f"RF: predikcija={ml_result['rf_pred']}, pouzdanost={rf_conf}, "
+                    f"IF: predikcija={ml_result['if_pred']}, pouzdanost={if_conf})"
                 )
                 return redirect(url_for("products"), code=303)
         
+        rf_conf = f"{ml_result['rf_proba'] * 100:.1f}%" if ml_result['rf_proba'] is not None else "—"
+        if_conf = f"{ml_result['if_proba'] * 100:.1f}%" if ml_result['if_proba'] is not None else "—"
         ml_info = (
-             f"(ML mode: {ml_mode} , "
-            f"RF: predikcija={ml_result['rf_pred']}, pouzdanost={ml_result['rf_proba']}%, "
-            f"IF: predikcija={ml_result['if_pred']}, pouzdanost={ml_result['if_proba']}%)"
+            f"(ML mode: {ml_mode}, "
+            f"RF: predikcija={ml_result['rf_pred']}, pouzdanost={rf_conf}, "
+            f"IF: predikcija={ml_result['if_pred']}, pouzdanost={if_conf})"
         )
         if db_error and ml_mode == "none":
             return render_template("login.html", form=form, login_error=f"Database error: {db_error}")
