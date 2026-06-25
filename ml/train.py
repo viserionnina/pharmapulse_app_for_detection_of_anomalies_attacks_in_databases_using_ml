@@ -20,7 +20,7 @@ import seaborn as sns
 
 from ml.if_features import SQL_KEYWORDS, keyword_features
 
-# mijenjanje imena za svaki dataset
+# mijenjanje imena ovdje za svaki dataset
 DS_NAME = "DS6_test_2"
 
 #kreiranje direktorija
@@ -83,22 +83,14 @@ print(f"IF val: {len(X_if_val)} (threshold tuning)")
 # ============================================================
 # --- TF-IDF ---
 print("\nFitting TF-IDF vectorizer: ")
-vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 5), max_features=5000, sublinear_tf=True) # duži n-grami mogu bolje uhvatiti union select, drop table itd.
+vectorizer = TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 5), max_features=50000, sublinear_tf=True) # duži n-grami mogu bolje uhvatiti union select, drop table itd.
 X_train_vec = vectorizer.fit_transform(X_train)
 X_val_vec = vectorizer.transform(X_val)
 X_test_vec = vectorizer.transform(X_test)
 
 print("\n--- Random Forest ---")
 start_rf = time.time()
-rf = RandomForestClassifier(
-    n_estimators=100,
-    max_depth=None,          # ili npr. 50 ako želiš ograničiti
-    max_features="sqrt",     # default, ali eksplicitno
-    min_samples_leaf=1,      # default
-    class_weight="balanced", # uravnotežuje klase u slučaju neravnoteže (više normalnih nego napada)
-    n_jobs=-1,
-    random_state=42
-)
+rf = RandomForestClassifier(n_estimators=100, n_jobs=-1, random_state=42)
 rf.fit(X_train_vec, y_train)
 
 val_pred = rf.predict(X_val_vec)
@@ -153,6 +145,13 @@ iso.fit(kw_train_scaled)
 # Formula J = TPR + TNR - 1 nagrađuje prag koji je dobar u oba aspekta istovremeno, ne samo u jednom.
 # Nakon što se taj optimalni prag jednom pronađe u treningu, sprema se u if_threshold.pkl i 
 # koristi se zatim trajno u produkciji (u detector.py) za svaki novi upit koji stigne bez ponovnog računanja.
+
+# Koristi se za:
+# Medicinske dijagnoze
+# Otkrivanje prijevare
+# Identifikaciju neispravnih proizvoda
+# Predviđanje kvara opreme
+# Procjenu kreditnog rizika
 val_scores = iso.decision_function(kw_if_val_scaled)
 best_thresh, best_j = 0.0, -1.0
 for thresh in np.linspace(val_scores.min(), val_scores.max(), 500):
@@ -165,12 +164,6 @@ for thresh in np.linspace(val_scores.min(), val_scores.max(), 500):
         best_j, best_thresh = j, thresh
 print(f"Optimal threshold (IF val Youden J={best_j:.4f}): {best_thresh:.4f}")
 
-# Koristi se za:
-# Medicinske dijagnoze
-# Otkrivanje prijevare
-# Identifikaciju neispravnih proizvoda
-# Predviđanje kvara opreme
-# Procjenu kreditnog rizika
 
 test_scores = iso.decision_function(kw_test_scaled)
 iso_test_pred = (test_scores < best_thresh).astype(int)
