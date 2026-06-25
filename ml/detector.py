@@ -28,7 +28,7 @@ def detect(sql_query: str, mode: str = "both") -> dict:
     rf_pred, rf_proba, if_pred, if_score, if_proba = None, None, None, None, None
 
     if mode in ("rf", "both"):
-        vec = vectorizer.transform([sql_query])
+        vec = vectorizer.transform([sql_query]) #prvo upit vektorizira u TF-IDF, a zatim ga predaje Random Forest modelu da procjeni
         rf_pred = int(rf.predict(vec)[0])  #RF predviđa: 0 (legitimno) ili 1 (napad) — to je direktna odluka stabla-glasanja (majority vote svih 100 stabala u šumi).
                                            #rf_pred je već binarna odluka na pragu 0.5, dok rf_proba je kontinuirana vrijednost (npr. 0.63, 0.97, 0.12...) iz koje je rf_pred izveden.
         rf_proba = float(rf.predict_proba(vec)[0][1])
@@ -39,8 +39,8 @@ def detect(sql_query: str, mode: str = "both") -> dict:
         if_score = float(iso.decision_function(kw_scaled)[0])
         if_pred = int(if_score < if_threshold) #-0.25 < -0.04? → True → 1 anomalija
         if_proba = float(1.0 / (1.0 + np.exp(if_score * 20.0))) # sigmoid function za pretvorbu u postotak
-        # Faktor 20 odabran je empirijski, na temelju opaženog raspona anomaly scoreova koje Isolation Forest model proizvodi 
-        # (tipično između -0.3 i 0.15). Budući da je taj raspon uzakbez skaliranja vjerojatnosti su previše zgurane i zato množenjem
+        # Faktor 20 odabran je empirijski, na temelju opaženog raspona anomaly score-ova koje Isolation Forest model proizvodi 
+        # (između -0.3 i 0.15). Budući da je taj raspon uzakbez skaliranja vjerojatnosti su previše zgurane i zato množenjem
         # s 20.0 dobivamo širi raspon i bolje razdvajanje vjerojatnosti između legitimnih i anomalnih upita.
     
     if mode == "none":
@@ -67,3 +67,7 @@ def detect(sql_query: str, mode: str = "both") -> dict:
         "detected": detected,
         "mode": mode,
     }
+
+
+# if __name__ == "__main__":
+#     print(detect("admin' --", mode="both"))
