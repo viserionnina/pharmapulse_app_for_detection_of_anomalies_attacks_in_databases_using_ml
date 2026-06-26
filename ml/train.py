@@ -44,11 +44,12 @@ print(f"Glavni dataset: {len(df_main):,} redova")
 # #        1         336281
 # # train  0         335306
 
-# Supervised RF: svi legitimni (train split) + svi SQLi (test split)
+# Podjela pool-ova
 sql_legit_pool = df_main[(df_main["split"] == "train") & (df_main["label"] == 0)].sample(n=335306) #mjenjanje vel. uzoraka za svaki dataset za RF model - normalni
 sqli_pool  = df_main[(df_main["split"] == "test")  & (df_main["label"] == 1)].sample(n=336281) #mjenjanje vel. uzoraka za svaki dataset za RF model - maliciozni
 df_rf_supervised = pd.concat([sql_legit_pool, sqli_pool]).sample(frac=1, random_state=42).reset_index(drop=True) #spajamo u jedan dataset i miješamo redoslijed (shuffle) da ne bi model naučio da su prvi redovi legit, a zadnji SQLi
 
+# RF train/test/val: stratificirana podjela
 X_rf_supervised, y_rf_supervised = df_rf_supervised["full_query"], df_rf_supervised["label"] #ulazni podaci i labele za nadzirano učenje RF modela
 X_train, X_tmp, y_train, y_tmp = train_test_split(X_rf_supervised, y_rf_supervised, test_size=0.2, random_state=42, stratify=y_rf_supervised) #80% za trening, 20% za privremeni skup (koji ćemo onda podijeliti na val i test)
 X_val, X_test, y_val, y_test = train_test_split(X_tmp, y_tmp, test_size=0.5, random_state=42, stratify=y_tmp)  #10% val, 10% test (od ukupnog skupa) — stratify da se održi ista distribucija klasa u svim splitovima
@@ -56,10 +57,10 @@ X_val, X_test, y_val, y_test = train_test_split(X_tmp, y_tmp, test_size=0.5, ran
 print(f"Supervised - Train: {len(X_train)} | Val: {len(X_val)} | Test: {len(X_test)}")
 print(f"Class distribution (train): {y_train.value_counts().to_dict()}")
 
-# IF train: samo label=0 queriji iz train splita, BEZ labela — nenadzirano
+# IF train: samo label=0 queriji iz train splita, bez labela 
 X_if_train = X_train[y_train == 0]
 
-# IF test: 70% normal, 30% maliciozni (realističniji scenarij)
+# IF test: 70% legitimni, 30% zlonamjerni
 test_normal_pool = df_main[(df_main["split"] == "test") & (df_main["label"] == 0)]
 if_test_normal = test_normal_pool.sample(n=469428, random_state=42)  # DS1
 if_test_attack = sqli_pool.sample(n=201184, random_state=42)          # DS1
