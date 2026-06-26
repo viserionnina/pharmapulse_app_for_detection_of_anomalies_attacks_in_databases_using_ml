@@ -23,7 +23,8 @@ from flask_wtf.file import FileField, FileAllowed
 import uuid
 
 from ml.detector import detect
-IP_BLOCK_SECONDS = 10
+
+IP_BLOCK_SECONDS = 0
 
 # --- App Setup ---
 app = Flask(__name__)
@@ -1487,14 +1488,24 @@ def login():
         if ml_result["detected"]:
             try:
                 log_security_event(
-                    f"ML_SQLI_DETECTED (RF={ml_result['rf_pred']}, RF_proba={ml_result['rf_proba']}, IF={ml_result['if_pred']}, IF_score={ml_result['if_score']})",
+                    f"ML_SQLI_DETECTED (RF={ml_result['rf_pred']}, RF_proba={ml_result['rf_proba']}, IF={ml_result['if_pred']}, IF_proba={ml_result['if_proba']})",
                     username,
                     password,
-                    block_seconds=0 #IP_BLOCK_SECONDS
+                    block_seconds=IP_BLOCK_SECONDS
                 )
             except Exception:
                 pass
             return render_template("blocked.html", details=ml_result, remaining=IP_BLOCK_SECONDS), 403
+        
+        #Zapisi za error poruke i obavijesti
+        rf_conf = f"{ml_result['rf_proba'] * 100:.1f}%" if ml_result['rf_proba'] is not None else "—"
+        if_conf = f"{ml_result['if_proba'] * 100:.1f}%" if ml_result['if_proba'] is not None else "—"
+
+        ml_info = (
+            f"(ML mode: {ml_mode}, "
+            f"RF: predikcija={ml_result['rf_pred']}, pouzdanost={rf_conf}, "
+            f"IF: predikcija={ml_result['if_pred']}, pouzdanost={if_conf})"
+        )
 
         # Pokušaj ranjivog SQL-a; greška (npr. malformiran string zbog ' u lozinki)
         # NE smije ubiti login — pravimo fallback na siguran hash check ispod.
@@ -1515,7 +1526,8 @@ def login():
                 cur.close()
             except Exception:
                 pass
-
+        
+        #row vraca redak iz baze, zlonamjerni upit se izvrsava
         if row:
             username_val = row.get("username") or ""
             password_val = row.get("password") or ""
@@ -1530,30 +1542,22 @@ def login():
             flash(f"Welcome, {username_val}!")
             return redirect(url_for("products"), code=303)
 
-        # Fallback za normalne korisnike
+        # Fallback za normalne korisnike ako je row = None
         row = fetch_user_by_username(username)
         if row:
             user = User(row["id"], row["username"], row["password"], row.get("is_admin", 0))
             if user.check_password(password):
                 login_user(user, remember=True)
-                rf_conf = f"{ml_result['rf_proba'] * 100:.1f}%" if ml_result['rf_proba'] is not None else "—"
-                if_conf = f"{ml_result['if_proba'] * 100:.1f}%" if ml_result['if_proba'] is not None else "—"
                 flash(
                     f"Logged in. (ML mode: {ml_mode}, "
                     f"RF: predikcija={ml_result['rf_pred']}, pouzdanost={rf_conf}, "
                     f"IF: predikcija={ml_result['if_pred']}, pouzdanost={if_conf})"
                 )
                 return redirect(url_for("products"), code=303)
-        
-        rf_conf = f"{ml_result['rf_proba'] * 100:.1f}%" if ml_result['rf_proba'] is not None else "—"
-        if_conf = f"{ml_result['if_proba'] * 100:.1f}%" if ml_result['if_proba'] is not None else "—"
-        ml_info = (
-            f"(ML mode: {ml_mode}, "
-            f"RF: predikcija={ml_result['rf_pred']}, pouzdanost={rf_conf}, "
-            f"IF: predikcija={ml_result['if_pred']}, pouzdanost={if_conf})"
-        )
-        if db_error and ml_mode == "none":
+
+        if db_error:
             return render_template("login.html", form=form, login_error=f"Database error: {db_error}")
+        
         return render_template("login.html", form=form, login_error=f"Invalid credentials for {username}. {ml_info}")
 
     return render_template("login.html", form=form)
