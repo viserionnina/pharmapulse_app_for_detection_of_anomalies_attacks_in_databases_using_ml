@@ -29,7 +29,7 @@ def detect(sql_query: str, mode: str = "both") -> dict:
     if mode in ("rf", "both"):
         vec = vectorizer.transform([sql_query]) #prvo upit vektorizira u TF-IDF, a zatim ga predaje Random Forest modelu da procjeni
         rf_pred = int(rf.predict(vec)[0])  #RF predviđa: 0 (legitimno) ili 1 (napad) — to je direktna odluka stabla-glasanja (majority vote svih 100 stabala u šumi).
-                                           #rf_pred je već binarna odluka na pragu 0.5, dok rf_proba je kontinuirana vrijednost (npr. 0.63, 0.97, 0.12...) iz koje je rf_pred izveden.
+        #rf_pred je već binarna odluka na pragu 0.5, dok rf_proba je kontinuirana vrijednost (npr. 0.63, 0.97, 0.12...) iz koje je rf_pred izveden.
         rf_proba = float(rf.predict_proba(vec)[0][1]) # uzima vjerojatnost klase 1 (napad) za prvi i jedini upit u batch-u.
 
     if mode in ("if", "both"):
