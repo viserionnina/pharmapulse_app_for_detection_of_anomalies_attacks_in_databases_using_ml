@@ -21,7 +21,7 @@ import seaborn as sns
 from ml.if_features import SQL_KEYWORDS, keyword_features
 
 # mijenjanje imena ovdje za svaki dataset
-DS_NAME = "DS6_test_2"
+DS_NAME = "DS6"
 
 #kreiranje direktorija
 DATASET_DIR = os.path.join(os.path.dirname(__file__), "datasets")
