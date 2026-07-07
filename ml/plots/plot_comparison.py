@@ -3,7 +3,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import os
 
-PLOTS_DIR = os.path.join(os.path.dirname(__file__), "plots")
+PLOTS_DIR = os.path.dirname(__file__)
 
 datasets = ["DS1", "DS2", "DS3", "DS4", "DS5", "DS6"]
 
@@ -24,7 +24,7 @@ if_ = {
 }
 
 metrics = ["Accuracy", "Precision", "Recall", "F1", "ROC-AUC"]
-ylabels = ["Acc", "Precision", "Recall", "F1", "ROC-AUC"]
+ylabels = ["Točnost", "Preciznost", "Odaziv", "F1", "ROC-AUC"]
 
 plt.rcParams.update({
     "font.family": "sans-serif",
@@ -38,12 +38,12 @@ for metric, ylabel in zip(metrics, ylabels):
     ax.plot(datasets, rf[metric], color="darkblue", linewidth=0.75,
             marker="s", markersize=7, label="RF")
     ax.plot(datasets, if_[metric], color="tomato", linewidth=0.75,
-            marker="^", markersize=7, label="iForest")
+            marker="^", markersize=7, label="IF")
 
     y_min = min(min(rf[metric]), min(if_[metric]))
     ax.set_ylim(max(0.75, y_min - 0.02), 1.005)
 
-    ax.set_xlabel("Dataset", fontsize=12)
+    ax.set_xlabel("Skup podataka", fontsize=12)
     ax.set_ylabel(ylabel, fontsize=12)
     ax.legend(fontsize=11, frameon=True, loc="lower right")
     ax.grid(axis="y", alpha=0.3, linestyle="--")
